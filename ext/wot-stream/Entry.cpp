@@ -1,5 +1,7 @@
 #include <iostream>
+using namespace std;
+
 
 int main() {
-	std::cin.get();
+	cin.get();
 }
