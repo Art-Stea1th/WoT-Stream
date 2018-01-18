@@ -11,6 +11,7 @@
 // obs
 
 #include "obs.hpp"
+#include "graphics\vec2.h"
 
 
 // defs

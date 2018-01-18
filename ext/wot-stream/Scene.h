@@ -9,8 +9,6 @@ namespace WotStream::Internal {
 		Scene(const string & name);
 		~Scene();
 
-		obs_scene* GetRaw(); // tmp
-
 	private:
 
 		obs_scene* _scene;

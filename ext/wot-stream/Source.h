@@ -11,8 +11,6 @@ namespace WotStream::Internal {
 
 		string GetName() const;
 
-		void Add();
-
 	private:
 
 		obs_source*  _source;

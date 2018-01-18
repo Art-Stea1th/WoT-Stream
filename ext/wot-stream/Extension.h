@@ -12,14 +12,6 @@ namespace WotStream {
 		~Extension();
 
 		void Load();
-
-		shared_ptr<Scene> MakeScene(const string &name);
-		shared_ptr<Source> MakeSource(const string &id, const string &name);
-		shared_ptr<SceneItem> MakeSceneItem();
-
-		void AddScene(shared_ptr<Scene> &scene, shared_ptr<Source> &source);
-
-		void SetOutputScene(shared_ptr<Scene> scene);
 	
 	private:
 
