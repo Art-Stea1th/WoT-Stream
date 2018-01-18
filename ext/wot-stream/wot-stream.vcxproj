@@ -130,18 +130,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AudioSource.cpp" />
+    <ClCompile Include="Audio.cpp" />
     <ClCompile Include="entry.cpp" />
     <ClCompile Include="Extension.cpp" />
-    <ClCompile Include="VideoSource.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneItem.cpp" />
+    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="Video.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AudioSource.h" />
-    <ClInclude Include="obs-deps.h" />
-    <ClInclude Include="internal-shared.h" />
+    <ClInclude Include="Audio.h" />
+    <ClInclude Include="SceneItem.h" />
+    <ClInclude Include="shared.h" />
     <ClInclude Include="Extension.h" />
-    <ClInclude Include="stl-deps.h" />
-    <ClInclude Include="VideoSource.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="Source.h" />
+    <ClInclude Include="Video.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

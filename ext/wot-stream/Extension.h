@@ -1,10 +1,9 @@
 #pragma once
-#include <stl-deps.h>
-#include <internal-shared.h>
+#include "shared.h"
 
-namespace WotStream {
+namespace WotStream {	
 
-	using namespace Sources;
+	using namespace Internal;
 
 	class Extension {
 	public:
@@ -12,43 +11,28 @@ namespace WotStream {
 		Extension();
 		~Extension();
 
+		void Load();
+
+		shared_ptr<Scene> MakeScene(const string &name);
+		shared_ptr<Source> MakeSource(const string &id, const string &name);
+		shared_ptr<SceneItem> MakeSceneItem();
+
+		void AddScene(shared_ptr<Scene> &scene, shared_ptr<Source> &source);
+
+		void SetOutputScene(shared_ptr<Scene> scene);
+	
+	private:
+
+		unique_ptr<Audio> _audio;
+		unique_ptr<Video> _video;
+
+		unique_ptr<Scene> _scene;
+
 		void Startup();
 
 		void ResetAudio();
 		void ResetVideo();
 
-		void LoadAllModules();
-
-		// ----------
-
-		/*void SetOutputSource();
-
-		void SetOutputScene();
-		void GetOutputScene();
-
-		void GetOutputSource();
-
-
-		void Render();
-
-		void GetSourceTypeDisplayName();
-
-		void GetSourceInputTypes();
-		void GetSourceFilterTypes();
-		void GetSourceTransitionTypes();
-
-		void GetBaseEffect();
-
-		void GetVersion();*/
-	
-	private:
-
-		unique_ptr<AudioSource> _audio;
-		unique_ptr<VideoSource> _video;
-
-		void Initialize();
-		void AddScene();
-
-		void Shutdown();
+		void LoadAllModules();		
 	};
 }

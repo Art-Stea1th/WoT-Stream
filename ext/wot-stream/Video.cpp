@@ -1,13 +1,13 @@
-#include "VideoSource.h"
+#include "Video.h"
 
-namespace WotStream::Sources {
 
-	VideoSource::VideoSource() {
+namespace WotStream::Internal {
+
+	Video::Video() {
 		_info = make_unique<obs_video_info>();
 	}
-	VideoSource::~VideoSource() {}
 	
-	void VideoSource::Reset() { // used hardcode values
+	void Video::Reset() { // used hardcode values
 
 		auto v = _info.get();
 

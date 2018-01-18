@@ -1,13 +1,13 @@
-#include "AudioSource.h"
+#include "Audio.h"
 
-namespace WotStream::Sources {
 
-	AudioSource::AudioSource() {
+namespace WotStream::Internal {
+
+	Audio::Audio() {
 		_info = make_unique<obs_audio_info>();
 	}
-	AudioSource::~AudioSource() {}
 	
-	void AudioSource::Reset() { // used hardcode values
+	void Audio::Reset() { // used hardcode values
 
 		auto a = _info.get();
 

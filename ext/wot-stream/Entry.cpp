@@ -1,27 +1,20 @@
-#include <stl-deps.h>
-#include <obs-deps.h>
-#include <internal-shared.h>
+#include "Extension.h"
 
 using namespace std;
 using namespace WotStream;
 
-void test();
+void test() {
 
-int main() {
+	auto extension = make_unique<Extension>();
 
-	// curl_global_init(CURL_GLOBAL_ALL);
-	test();
+	auto scene = extension->MakeScene("scene");
+	auto source = extension->MakeSource("game_capture", "World of Tanks");
 
 	cin.get();
 }
 
-void test() {
+int main() {
 
-	Extension ext;
-	ext.Startup();
-	ext.ResetAudio();
-	ext.ResetVideo();
-	ext.LoadAllModules();
-
+	test();
 	cin.get();
 }
