@@ -69,11 +69,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)\obs-no-gui\rundir\$(Configuration)\bin\32bit\</OutDir>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)\obs-no-gui\rundir\$(Configuration)\bin\32bit\</OutDir>
+    <OutDir>$(SolutionDir)\obs\rundir\$(Configuration)\bin\32bit\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -81,12 +79,16 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\artst\Documents\! My\Progects\! Programming\! Game modifications\World of Tanks\WotStream\wot-stream\ext\wot-stream;D:\artst\Documents\! My\Progects\! Programming\! Game modifications\World of Tanks\WotStream\wot-stream\ext\obs-repo\libobs\;D:\artst\Documents\! My\Progects\! Programming\! Game modifications\World of Tanks\WotStream\wot-stream\ext\obs-repo\libobs\media-io;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\DepsPath\win32\include;D:\artst\Documents\! My\Progects\! Programming\! Game modifications\World of Tanks\WotStream\wot-stream\ext\wot-stream;D:\artst\Documents\! My\Progects\! Programming\! Game modifications\World of Tanks\WotStream\wot-stream\ext\obs-repo\libobs\;D:\artst\Documents\! My\Progects\! Programming\! Game modifications\World of Tanks\WotStream\wot-stream\ext\obs-repo\libobs\media-io;D:\artst\Documents\! My\Progects\! Programming\! Game modifications\World of Tanks\WotStream\wot-stream\ext\obs-repo\libobs\util;D:\artst\Documents\! My\Progects\! Programming\! Game modifications\World of Tanks\WotStream\wot-stream\ext\obs-repo\libobs-d3d11;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>obs.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\artst\Documents\! My\Progects\! Programming\! Game modifications\World of Tanks\WotStream\wot-stream\ext\obs-no-gui\libobs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>obs.lib;libcurl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\DepsPath\win32\bin\;D:\artst\Documents\! My\Progects\! Programming\! Game modifications\World of Tanks\WotStream\wot-stream\ext\obs\libobs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(TargetDir)$(ProjectName).exe" "$(SolutionDir)obs\rundir\Debug\bin\32bit\$(ProjectName).exe"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -104,11 +106,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\wot-stream\ext\obs-repo\libobs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>d:\artst\Documents\! My\Progects\! Programming\! Game modifications\World of Tanks\WotStream\wot-stream\ext\obs-repo\libobs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>D:\artst\Documents\! My\Progects\! Programming\! Game modifications\World of Tanks\WotStream\wot-stream\ext\obs\libobs\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>D:\artst\Documents\! My\Progects\! Programming\! Game modifications\World of Tanks\WotStream\wot-stream\ext\obs\libobs\Debug\obs.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -126,7 +130,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Entry.cpp" />
+    <ClCompile Include="AudioSource.cpp" />
+    <ClCompile Include="entry.cpp" />
+    <ClCompile Include="Extension.cpp" />
+    <ClCompile Include="VideoSource.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AudioSource.h" />
+    <ClInclude Include="obs-deps.h" />
+    <ClInclude Include="internal-shared.h" />
+    <ClInclude Include="Extension.h" />
+    <ClInclude Include="stl-deps.h" />
+    <ClInclude Include="VideoSource.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
