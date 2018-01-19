@@ -3,11 +3,15 @@
 using namespace std;
 using namespace WotStream;
 
-void test() {
+void test() { // TODO: 'll wrap in the object oriented model after clarifying all of the requirements
+
+	// + init audio, video, created default scene & game source, configured
 
 	auto extension = make_unique<Extension>();
 
 	auto scene = obs_scene_create("scene");
+	
+	// ? find a function sets the process id for a source
 	auto source = obs_source_create("game_capture", "World of Tanks", nullptr, nullptr);
 
 	auto scene_item = obs_scene_add(scene, source);
@@ -24,7 +28,15 @@ void test() {
 
 	obs_set_output_source(0, source);
 
-	obs_sceneitem_selected(scene_item);
+
+	// - start graphics & audio threads
+
+
+	// - create & configure service
+
+
+	// - start stream
+
 
 	cin.get();
 }
