@@ -1,16 +1,15 @@
 #pragma once
 #include "shared.h"
 
-namespace WotStream::Internal {
+namespace wot_stream::internal {
 
-	class Video {
-	public:
+    class Video {
+    public:
+        Video();
+        void Reset();
 
-		Video();
-		void Reset();
-
-	private:
-
-		unique_ptr<obs_video_info> _info;
-	};
-}
+    private:
+        std::unique_ptr<obs_video_info> info;
+        std::shared_ptr<video_t> video;
+    };
+} // namespace wot_stream::internal

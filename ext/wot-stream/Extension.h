@@ -1,30 +1,28 @@
 #pragma once
 #include "shared.h"
 
-namespace WotStream {	
+namespace wot_stream {
 
-	using namespace Internal;
+    using namespace internal;
 
-	class Extension {
-	public:
+    class Extension {
+    public:
+        Extension();
+        ~Extension();
 
-		Extension();
-		~Extension();
+        void Load();
 
-		void Load();
-	
-	private:
+    private:
+        std::unique_ptr<Audio> audio;
+        std::unique_ptr<Video> video;
 
-		unique_ptr<Audio> _audio;
-		unique_ptr<Video> _video;
+        std::unique_ptr<Scene> scene;
 
-		unique_ptr<Scene> _scene;
+        void Startup();
 
-		void Startup();
+        void ResetAudio();
+        void ResetVideo();
 
-		void ResetAudio();
-		void ResetVideo();
-
-		void LoadAllModules();		
-	};
-}
+        void LoadAllModules();
+    };
+} // namespace wot_stream

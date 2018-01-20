@@ -1,16 +1,14 @@
 #pragma once
 #include "shared.h"
 
-namespace WotStream::Internal {
+namespace wot_stream::internal {
 
-	class Scene {
-	public:
+    class Scene {
+    public:
+        Scene(const std::string &name);
+        ~Scene();
 
-		Scene(const string & name);
-		~Scene();
-
-	private:
-
-		obs_scene* _scene;
-	};
-}
+    private:
+        obs_scene * scene;
+    };
+} // namespace wot_stream::internal

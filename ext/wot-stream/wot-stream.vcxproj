@@ -130,22 +130,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="audio.cpp" />
     <ClCompile Include="entry.cpp" />
-    <ClCompile Include="Extension.cpp" />
-    <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="SceneItem.cpp" />
-    <ClCompile Include="Source.cpp" />
-    <ClCompile Include="Video.cpp" />
+    <ClCompile Include="extension.cpp" />
+    <ClCompile Include="scene.cpp" />
+    <ClCompile Include="sceneItem.cpp" />
+    <ClCompile Include="source.cpp" />
+    <ClCompile Include="video.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Audio.h" />
-    <ClInclude Include="SceneItem.h" />
+    <ClInclude Include="audio.h" />
+    <ClInclude Include="sceneItem.h" />
     <ClInclude Include="shared.h" />
-    <ClInclude Include="Extension.h" />
-    <ClInclude Include="Scene.h" />
-    <ClInclude Include="Source.h" />
-    <ClInclude Include="Video.h" />
+    <ClInclude Include="extension.h" />
+    <ClInclude Include="scene.h" />
+    <ClInclude Include="source.h" />
+    <ClInclude Include="video.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

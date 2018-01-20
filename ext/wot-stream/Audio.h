@@ -1,16 +1,15 @@
 #pragma once
 #include "shared.h"
 
-namespace WotStream::Internal {
+namespace wot_stream::internal {
 
-	class Audio {
-	public:
+    class Audio {
+    public:
+        Audio();
+        void Reset();
 
-		Audio();
-		void Reset();
-
-	private:
-
-		unique_ptr<obs_audio_info> _info;
-	};
-}
+    private:
+        std::unique_ptr<obs_audio_info> info;
+        std::shared_ptr<audio_t> audio;
+    };
+} // namespace wot_stream::internal

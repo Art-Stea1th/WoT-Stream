@@ -15,45 +15,45 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="entry.cpp" />
-    <ClCompile Include="Extension.cpp">
+    <ClCompile Include="audio.cpp">
       <Filter>extension\sources</Filter>
     </ClCompile>
-    <ClCompile Include="Scene.cpp">
+    <ClCompile Include="extension.cpp">
       <Filter>extension\sources</Filter>
     </ClCompile>
-    <ClCompile Include="Source.cpp">
+    <ClCompile Include="scene.cpp">
       <Filter>extension\sources</Filter>
     </ClCompile>
-    <ClCompile Include="SceneItem.cpp">
+    <ClCompile Include="sceneItem.cpp">
       <Filter>extension\sources</Filter>
     </ClCompile>
-    <ClCompile Include="Audio.cpp">
+    <ClCompile Include="source.cpp">
       <Filter>extension\sources</Filter>
     </ClCompile>
-    <ClCompile Include="Video.cpp">
+    <ClCompile Include="video.cpp">
       <Filter>extension\sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Extension.h">
-      <Filter>extension\headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>extension\headers</Filter>
-    </ClInclude>
     <ClInclude Include="shared.h">
       <Filter>extension</Filter>
     </ClInclude>
-    <ClInclude Include="Source.h">
+    <ClInclude Include="audio.h">
       <Filter>extension\headers</Filter>
     </ClInclude>
-    <ClInclude Include="SceneItem.h">
+    <ClInclude Include="extension.h">
       <Filter>extension\headers</Filter>
     </ClInclude>
-    <ClInclude Include="Audio.h">
+    <ClInclude Include="scene.h">
       <Filter>extension\headers</Filter>
     </ClInclude>
-    <ClInclude Include="Video.h">
+    <ClInclude Include="sceneItem.h">
+      <Filter>extension\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="source.h">
+      <Filter>extension\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="video.h">
       <Filter>extension\headers</Filter>
     </ClInclude>
   </ItemGroup>

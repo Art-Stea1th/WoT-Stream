@@ -1,17 +1,16 @@
 #pragma once
 #include "shared.h"
 
-namespace WotStream::Internal {
+namespace wot_stream::internal {
 
-	class SceneItem {
-	public:
-		SceneItem();
-		~SceneItem();
+    class SceneItem {
+    public:
+        SceneItem();
+        ~SceneItem();
 
-		void SetPos(float x, float y);
+        void SetPos(float x, float y);
 
-	private:
-
-		obs_sceneitem_t* _instance;
-	};
-}
+    private:
+        obs_sceneitem_t * sceneitem;
+    };
+} // namespace wot_stream::internal
