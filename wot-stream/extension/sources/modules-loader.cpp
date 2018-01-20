@@ -18,7 +18,7 @@ namespace wot_stream::internal {
     ModulesLoader::~ModulesLoader() {}
 
     void ModulesLoader::LoadAuthorized() {
-        for (auto module_name : authorized_module_names) {
+        for (auto &module_name : authorized_module_names) {
             auto bin_path = default_bin_path + module_name + ".dll";
             auto data_path = default_data_path + module_name;
             LoadModule(bin_path, data_path);
