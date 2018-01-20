@@ -23,6 +23,6 @@ namespace wot_stream {
         void ResetAudio();
         void ResetVideo();
 
-        void LoadAllModules();
+        void LoadModules();
     };
 } // namespace wot_stream

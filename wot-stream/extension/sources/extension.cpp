@@ -1,4 +1,5 @@
 #include "extension.h"
+#include "modules-loader.h"
 #include "audio.h"
 #include "scene.h"
 #include "scene-item.h"
@@ -19,7 +20,7 @@ namespace wot_stream {
         Startup();
         ResetAudio();
         ResetVideo();
-        LoadAllModules();
+        LoadModules();
     }
 
     void Extension::Startup() {
@@ -32,8 +33,12 @@ namespace wot_stream {
 
     void Extension::ResetVideo() { video->Reset(); }
 
-    void Extension::LoadAllModules() {
-        obs_load_all_modules();
+    void Extension::LoadModules() {
+
+        ModulesLoader loader {};
+        loader.LoadAuthorized();
+
+        //obs_load_all_modules();
         obs_log_loaded_modules();
         obs_post_load_modules();
     }

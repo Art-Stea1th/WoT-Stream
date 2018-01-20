@@ -11,6 +11,6 @@ namespace wot_stream::internal {
         std::string GetName() const;
 
     private:
-        obs_source * source;
+        obs_source* source;
     };
 } // namespace wot_stream::internal

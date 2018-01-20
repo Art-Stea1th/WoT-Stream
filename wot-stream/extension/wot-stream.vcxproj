@@ -22,6 +22,7 @@
     <ClCompile Include="entry.cpp" />
     <ClCompile Include="sources\audio.cpp" />
     <ClCompile Include="sources\extension.cpp" />
+    <ClCompile Include="sources\modules-loader.cpp" />
     <ClCompile Include="sources\scene.cpp" />
     <ClCompile Include="sources\scene-item.cpp" />
     <ClCompile Include="sources\source.cpp" />
@@ -30,6 +31,7 @@
   <ItemGroup>
     <ClInclude Include="headers\audio.h" />
     <ClInclude Include="headers\extension.h" />
+    <ClInclude Include="headers\modules-loader.h" />
     <ClInclude Include="headers\scene.h" />
     <ClInclude Include="headers\scene-item.h" />
     <ClInclude Include="headers\source.h" />

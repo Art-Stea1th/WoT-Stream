@@ -28,6 +28,9 @@
     <ClCompile Include="sources\scene-item.cpp">
       <Filter>sources</Filter>
     </ClCompile>
+    <ClCompile Include="sources\modules-loader.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shared.h" />
@@ -47,6 +50,9 @@
       <Filter>headers</Filter>
     </ClInclude>
     <ClInclude Include="headers\scene-item.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\modules-loader.h">
       <Filter>headers</Filter>
     </ClInclude>
   </ItemGroup>

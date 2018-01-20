@@ -8,7 +8,7 @@ void test() { // TODO: 'll wrap in the object oriented model after clarifying
 
   // + init audio, video, created default scene & game source, configured
 
-    auto extension = make_unique<Extension>();
+    Extension extension {};
 
     auto scene = obs_scene_create("scene");
     // ? find a function sets the process id for a source
@@ -17,7 +17,7 @@ void test() { // TODO: 'll wrap in the object oriented model after clarifying
     auto scene_item = obs_scene_add(scene, source);
     obs_sceneitem_addref(scene_item);
 
-    vec2 pos{ 0, 0 }, scale{ 1, 1 }, bounds{ 1920, 1080 };
+    vec2 pos { 0, 0 }, scale { 1, 1 }, bounds { 1920, 1080 };
 
     obs_sceneitem_set_pos(scene_item, &pos);
     obs_sceneitem_set_scale(scene_item, &scale);

@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <memory>
+#include <vector>
 #include <string>
 
 // obs
@@ -16,6 +17,7 @@ typedef unsigned int uint;
 
 namespace wot_stream::internal {
 
+    class ModulesLoader;
     class Audio;
     class Video;
     class SceneItem;

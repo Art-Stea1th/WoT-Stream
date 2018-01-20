@@ -9,6 +9,6 @@ namespace wot_stream::internal {
         ~Scene();
 
     private:
-        obs_scene * scene;
+        obs_scene* scene;
     };
 } // namespace wot_stream::internal
