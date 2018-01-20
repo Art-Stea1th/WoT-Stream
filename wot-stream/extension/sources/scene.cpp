@@ -1,4 +1,4 @@
-#include "Scene.h"
+#include "scene.h"
 
 namespace wot_stream::internal {
 

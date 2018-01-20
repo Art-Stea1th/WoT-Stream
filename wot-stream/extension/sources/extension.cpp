@@ -1,9 +1,9 @@
-#include "Extension.h"
-#include "Audio.h"
-#include "Scene.h"
-#include "SceneItem.h"
-#include "Source.h"
-#include "Video.h"
+#include "extension.h"
+#include "audio.h"
+#include "scene.h"
+#include "scene-item.h"
+#include "source.h"
+#include "video.h"
 
 namespace wot_stream {
 
