@@ -1,6 +1,6 @@
-#include "modules-loader.h"
+#include "modules_loader.h"
 
-namespace wot_stream::internal {
+namespace wot_stream::extension::utilities {
 
     ModulesLoader::ModulesLoader()
         : default_bin_path("../../obs-plugins/32bit/"),          // 'll be changed
@@ -10,8 +10,8 @@ namespace wot_stream::internal {
             "win-wasapi", "win-mf", "win-dshow", "win-capture", // "win-decklink",
             "rtmp-services",
             "obs-x264", "obs-qsv11", "obs-outputs", // "obs-ffmpeg",
-            // "image-source",
-            // "coreaudio-encoder"
+                                                    // "image-source",
+                                                    // "coreaudio-encoder"
         };
     }
 
@@ -40,4 +40,5 @@ namespace wot_stream::internal {
     void ModulesLoader::AddPath(const std::string &bin, const std::string &data) {
         obs_add_module_path(bin.c_str(), data.c_str());
     }
-}
+
+} // namespace wot_stream::extension::utilities

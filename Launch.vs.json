@@ -1,0 +1,16 @@
+// ???
+
+//{
+//    "version": "0.2.1",
+//    "defaults": {},
+//    "configurations": [
+//        {
+//            "type": "default",
+//            "project": "CMakeLists.txt",
+//            "output": "$dependencies/obs_sln/rundir/Debug/bin/32bit/wot_stream.exe",
+//            "projectTarget": "dependencies/obs_sln/rundir/Debug/bin/32bit/wot_stream.exe",
+//            "name": "Wot Stream",
+//            "currentDir": "dependencies/obs_sln/rundir/Debug/bin/32bit"
+//        }
+//    ]
+//}

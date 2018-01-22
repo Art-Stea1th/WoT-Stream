@@ -1,7 +1,7 @@
-#pragma once
-#include "shared.h"
+#include "../shared.h"
 
-namespace wot_stream::internal {
+
+namespace wot_stream::extension::utilities {
 
     class ModulesLoader {
     public:
@@ -21,4 +21,4 @@ namespace wot_stream::internal {
         void LoadModule(const std::string &bin_path, const std::string &data_path);
 
     };
-}
+} // namespace wot_stream::extension::utilities
