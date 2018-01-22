@@ -19,6 +19,7 @@ namespace wot_stream::extension::utilities {
 
         void AddPath(const std::string &bin = nullptr, const std::string &data = nullptr);
         void LoadModule(const std::string &bin_path, const std::string &data_path);
+        void PostLoad();
 
     };
 } // namespace wot_stream::extension::utilities

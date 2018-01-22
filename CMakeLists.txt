@@ -35,5 +35,6 @@ set_property(TARGET wot_stream PROPERTY CXX_STANDARD 17)
 find_library(LIB_OBS NAMES "obs" PATHS "${OBS_SLN}/libobs/Debug/")
 target_link_libraries(wot_stream "${LIB_OBS}")
 
+
 # hardcode
 set_property(TARGET wot_stream PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${OBS_SLN}/rundir/Debug/bin/32bit") # ??

@@ -1,12 +1,12 @@
 {
     "configurations": [
         {
-            "name": "x86 Debug",
+            "name": "x86-Debug",
             "generator": "Ninja",
             "configurationType": "Debug",
             "inheritEnvironments": [ "msvc_x86" ],
-            "buildRoot": "${projectDir}\\build\\x86\\Debug",
-            "installRoot": "${projectDir}\\install\\x86\\Debug",
+            "buildRoot": "${projectDir}\\build\\Debug\\bin\\32bit",
+            "installRoot": "${projectDir}\\install\\Debug\\bin\\32bit",
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
             "ctestCommandArgs": "",
@@ -26,12 +26,12 @@
             ]
         },
         {
-            "name": "x86 Release",
+            "name": "x86-Release",
             "generator": "Ninja",
             "configurationType": "RelWithDebInfo",
             "inheritEnvironments": [ "msvc_x86" ],
-            "buildRoot": "${projectDir}\\build\\x86\\Release",
-            "installRoot": "${projectDir}\\install\\x86\\Release",
+            "buildRoot": "${projectDir}\\build\\Debug\\bin\\32bit",
+            "installRoot": "${projectDir}\\install\\Debug\\bin\\32bit",
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
             "ctestCommandArgs": "",
