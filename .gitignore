@@ -3,8 +3,5 @@
 build/
 install/
 
-dependencies/obs_rep/*
-!dependencies/obs_rep/clone_obs_rep_here
-
 dependencies/obs_sln/*
 !dependencies/obs_sln/make_obs_sln_here
