@@ -1,6 +1,8 @@
 #include "modules_loader.h"
 
-namespace wot_stream::extension::utilities {
+namespace wot_stream::extension::obs_management {
+
+    using string = std::string;
 
     ModulesLoader::ModulesLoader()
         : default_bin_path("../../obs-plugins/32bit/"),          // 'll be changed
@@ -23,13 +25,14 @@ namespace wot_stream::extension::utilities {
             auto data_path = default_data_path + module_name;
             LoadModule(bin_path, data_path);
         }
+        PostLoad();
     }
 
-    void ModulesLoader::AddPath(const std::string &bin, const std::string &data) {
+    void ModulesLoader::AddPath(const string &bin, const string &data) {
         obs_add_module_path(bin.c_str(), data.c_str());
     }
 
-    void ModulesLoader::LoadModule(const std::string &bin_path, const std::string &data_path) {
+    void ModulesLoader::LoadModule(const string &bin_path, const string &data_path) {
 
         obs_module* module;
 
@@ -41,8 +44,9 @@ namespace wot_stream::extension::utilities {
         obs_init_module(module);
     }
 
-    void PostLoad() {
+    void ModulesLoader::PostLoad() {
         obs_log_loaded_modules();
         obs_post_load_modules();
     }
-} // namespace wot_stream::extension::utilities
+
+}

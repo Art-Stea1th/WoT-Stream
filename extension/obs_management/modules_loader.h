@@ -1,7 +1,7 @@
+#pragma once
 #include "../shared.h"
 
-
-namespace wot_stream::extension::utilities {
+namespace wot_stream::extension::obs_management {
 
     class ModulesLoader {
     public:
@@ -22,4 +22,5 @@ namespace wot_stream::extension::utilities {
         void PostLoad();
 
     };
-} // namespace wot_stream::extension::utilities
+
+}

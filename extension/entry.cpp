@@ -1,6 +1,6 @@
-#include "utilities/modules_loader.h"
+#include "obs_management/modules_loader.h"
 
-using namespace wot_stream::extension::utilities;
+using namespace wot_stream::extension::obs_management;
 using namespace std;
 
 void Check();
@@ -9,8 +9,12 @@ void ResetAudio();
 void ResetVideo();
 
 int main() {
+
     Check();
-    cin.get();    
+    cin.get();
+
+    Check();
+    cin.get();
 }
 
 void Check() { // TODO: 'll wrap in the object oriented model after clarifying
@@ -24,6 +28,8 @@ void Check() { // TODO: 'll wrap in the object oriented model after clarifying
 
     ModulesLoader modules_loader {};
     modules_loader.LoadAuthorized();
+
+    cout << string(64, '=') << endl;
 
     auto scene = obs_scene_create("scene");
     // ? find a function sets the process id for a source
@@ -68,6 +74,8 @@ void Check() { // TODO: 'll wrap in the object oriented model after clarifying
     obs_sceneitem_release(scene_item);
     obs_source_release(source);
     obs_scene_release(scene);
+
+    obs_shutdown();
 }
 
 void Startup() {
