@@ -114,27 +114,27 @@ void Check() {
     auto stream_output_settings = obs_data_create();
 
     auto reconnect = true;
-    auto retryDelay = 10;
-    auto maxRetries = 20;
-    auto useDelay = false;
-    auto delaySec = 20;
-    auto preserveDelay = true;
-    auto bindIP = "default";
-    auto enableNewSocketLoop = false;
-    auto enableLowLatencyMode = false;
+    auto retry_delay = 10;
+    auto max_retries = 20;
+    auto use_delay = false;
+    auto delay_sec = 20;
+    auto preserve_delay = true;
+    auto bind_IP = "default";
+    auto enable_new_socket_loop = false;
+    auto enable_low_latency_mode = false;
 
-    obs_data_set_string(stream_output_settings, "bind_ip", bindIP);
-    obs_data_set_bool(stream_output_settings, "new_socket_loop_enabled", enableNewSocketLoop);
-    obs_data_set_bool(stream_output_settings, "low_latency_mode_enabled", enableLowLatencyMode);
+    obs_data_set_string(stream_output_settings, "bind_ip", bind_IP);
+    obs_data_set_bool(stream_output_settings, "new_socket_loop_enabled", enable_new_socket_loop);
+    obs_data_set_bool(stream_output_settings, "low_latency_mode_enabled", enable_low_latency_mode);
 
     obs_output_update(stream_output, stream_output_settings);
 
 
     if (!reconnect)
-        maxRetries = 0;
+        max_retries = 0;
 
-    obs_output_set_delay(stream_output, useDelay ? delaySec : 0, preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
-    obs_output_set_reconnect_settings(stream_output, maxRetries, retryDelay);
+    obs_output_set_delay(stream_output, use_delay ? delay_sec : 0, preserve_delay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
+    obs_output_set_reconnect_settings(stream_output, max_retries, retry_delay);
 
     // --- stream_output --------------------------------------------------------------------------
 
