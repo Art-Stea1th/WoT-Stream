@@ -13,14 +13,21 @@ int main() {
     Check();
     cin.get();
 
-    Check();
-    cin.get();
+    /*Check();
+    cin.get();*/
 }
 
-void Check() { // TODO: 'll wrap in the object oriented model after clarifying
-               // all of the requirements
+void Check() {
 
-    // + init audio, video, created default scene & game source, configured
+
+    // --------------------------------------------------------------------------------------------
+    // TODO: 'll wrap in the object oriented model after clarifying all of the requirements
+    // TODO: IMPORTANT! to use a wrappers from "obs.hpp" for simplify the interaction with it
+    // --------------------------------------------------------------------------------------------
+
+
+
+    // + init audio, video, created default scene & game source, configured -----------------------
 
     Startup();
     ResetAudio();
@@ -29,7 +36,11 @@ void Check() { // TODO: 'll wrap in the object oriented model after clarifying
     ModulesLoader modules_loader {};
     modules_loader.LoadAuthorized();
 
+    // --------------------------------------------------------------------------------------------
+
     cout << string(64, '=') << endl;
+
+    // --- source ---------------------------------------------------------------------------------
 
     auto scene = obs_scene_create("scene");
     // ? find a function sets the process id for a source
@@ -47,26 +58,102 @@ void Check() { // TODO: 'll wrap in the object oriented model after clarifying
     obs_sceneitem_set_bounds_type(scene_item, OBS_BOUNDS_SCALE_INNER);
     obs_sceneitem_set_bounds_alignment(scene_item, 0); // center
 
-                                                       // - init encoder
-    auto video_encoder = obs_video_encoder_create("obs_x264", "simple_h264_stream", nullptr, nullptr); // ? clarify
-    auto audio_encoder = obs_audio_encoder_create("mf_aac", "simple_aac", nullptr, 0, nullptr);        // ? clarify
 
-                                                                                                       // - create & configure service
-    auto service = obs_output_create("rtpm_common", "default_service", nullptr, nullptr); // failed, need settings
+    auto video_encoder = obs_video_encoder_create("obs_x264", "simple_h264_stream", nullptr, nullptr);
+    auto audio_encoder = obs_audio_encoder_create("mf_aac", "simple_aac", nullptr, 0, nullptr);
 
-    obs_set_output_source(0, source);
+    // obs_set_output_source(0, source);
 
     // - start graphics & audio threads
 
     // - start stream
 
-    cout << string(64, '=') << endl;
 
+    // --- service --------------------------------------------------------------------------------
+
+    auto service = obs_service_create("rtmp_common", "default_service", nullptr, nullptr); // need settings
+
+    auto h264_settings = obs_data_create();
+    auto aac_settings = obs_data_create();
+
+    obs_data_set_string(h264_settings, "rate_control", "CBR");
+    obs_data_set_int(h264_settings, "bitrate", 2500);
+
+    obs_data_set_string(aac_settings, "rate_control", "CBR");
+    obs_data_set_int(aac_settings, "bitrate", 160);
+
+    obs_service_apply_encoder_settings(service, h264_settings, aac_settings);
+
+    auto video = obs_get_video();
+    auto video_format = video_output_get_format(video);
+
+    obs_encoder_update(video_encoder, h264_settings);
+    obs_encoder_update(audio_encoder, aac_settings);
+
+    auto output_type = obs_service_get_output_type(service);
+    auto url = obs_service_get_url(service);
+
+
+    // --- stream output --------------------------------------------------------------------------
+
+    auto stream_output = obs_output_create(output_type, "simple_stream", nullptr, nullptr); // type - rtmp_output
+    obs_output_addref(stream_output); // ?
+
+    // --- SIGNALS --- for obs-signal from wrappers ("obs.hpp")
+    // streamDelayStarting.Connect(obs_output_get_signal_handler(streamOutput), "starting", OBSStreamStarting, this);
+    // streamStopping.Connect(obs_output_get_signal_handler(streamOutput), "stopping", OBSStreamStopping, this);
+    // startStreaming.Connect(obs_output_get_signal_handler(streamOutput), "start", OBSStartStreaming, this);
+    // stopStreaming.Connect(obs_output_get_signal_handler(streamOutput), "stop", OBSStopStreaming, this);
+
+    auto supported_audio_codec = obs_output_get_supported_audio_codecs(stream_output);
+
+    obs_output_set_video_encoder(stream_output, video_encoder);
+    obs_output_set_audio_encoder(stream_output, audio_encoder, 0);
+    obs_output_set_service(stream_output, service);
+
+    auto stream_output_settings = obs_data_create();
+
+    auto reconnect = true;
+    auto retryDelay = 10;
+    auto maxRetries = 20;
+    auto useDelay = false;
+    auto delaySec = 20;
+    auto preserveDelay = true;
+    auto bindIP = "default";
+    auto enableNewSocketLoop = false;
+    auto enableLowLatencyMode = false;
+
+    obs_data_set_string(stream_output_settings, "bind_ip", bindIP);
+    obs_data_set_bool(stream_output_settings, "new_socket_loop_enabled", enableNewSocketLoop);
+    obs_data_set_bool(stream_output_settings, "low_latency_mode_enabled", enableLowLatencyMode);
+
+    obs_output_update(stream_output, stream_output_settings);
+
+
+    if (!reconnect)
+        maxRetries = 0;
+
+    obs_output_set_delay(stream_output, useDelay ? delaySec : 0, preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
+    obs_output_set_reconnect_settings(stream_output, maxRetries, retryDelay);
+
+    // --- stream_output --------------------------------------------------------------------------
+
+    obs_output_start(stream_output);
+
+    // --------------------------------------------------------------------------------------------
+    cout << string(64, '=') << endl;
     cin.get();
 
-    // - release memory
+    // --- release memory -------------------------------------------------------------------------
 
-    obs_output_release(service);
+    obs_output_release(stream_output);
+
+    obs_data_release(stream_output_settings);
+
+    obs_data_release(aac_settings);
+    obs_data_release(h264_settings);
+
+    obs_service_release(service);
 
     obs_encoder_release(audio_encoder);
     obs_encoder_release(video_encoder);
