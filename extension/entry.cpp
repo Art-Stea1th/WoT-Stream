@@ -65,7 +65,13 @@ void Check() {
 
     // --- service --------------------------------------------------------------------------------
 
-    auto service = obs_service_create("rtmp_common", "default_service", nullptr, nullptr); // need settings ?
+    auto rtpm_settings = obs_data_create();
+
+    obs_data_set_string(rtpm_settings, "key", "0000-0000-0000-0000"); // <<------------ place youtube token here
+    obs_data_set_string(rtpm_settings, "server", "rtmp://a.rtmp.youtube.com/live2");
+    obs_data_set_string(rtpm_settings, "service", "YouTube / YouTube Gaming");
+
+    auto service = obs_service_create("rtmp_common", "default_service", rtpm_settings, nullptr);
 
     auto h264_settings = obs_data_create();
     auto aac_settings = obs_data_create();
@@ -79,31 +85,25 @@ void Check() {
     obs_service_apply_encoder_settings(service, h264_settings, aac_settings);
 
     auto video = obs_get_video();
-    auto video_format = video_output_get_format(video);
+    auto audio = obs_get_audio(); // !
 
     obs_encoder_update(video_encoder, h264_settings);
     obs_encoder_update(audio_encoder, aac_settings);
 
-    auto output_type = obs_service_get_output_type(service);
-    
-    auto url = obs_service_get_url(service);           // ? empty
-    auto key = obs_service_get_key(service);           // ? empty
-    auto username = obs_service_get_username(service); // ? nullptr
-    auto password = obs_service_get_password(service); // ? nullptr
-
     // --- a/v set ----
-
-    auto audio = obs_get_audio(); // !
 
     obs_encoder_set_video(video_encoder, video); // !
     obs_encoder_set_audio(audio_encoder, audio); // !
 
     // ----------------
 
+    auto output_type = obs_service_get_output_type(service);
 
+                                                       
+                                                       
     // --- stream output --------------------------------------------------------------------------
 
-    auto stream_output = obs_output_create(output_type, "simple_stream", nullptr, nullptr); // need settings ?
+    auto stream_output = obs_output_create(output_type, "simple_stream", nullptr, nullptr);
 
     // --- SIGNALS --- for obs-signal from wrappers ("obs.hpp")
     // streamDelayStarting.Connect(obs_output_get_signal_handler(streamOutput), "starting", OBSStreamStarting, this);
@@ -131,7 +131,7 @@ void Check() {
 
     obs_data_set_string(stream_output_settings, "bind_ip", bind_IP);
     obs_data_set_bool(stream_output_settings, "new_socket_loop_enabled", enable_new_socket_loop);
-    obs_data_set_bool(stream_output_settings, "low_latency_mode_enabled", enable_low_latency_mode);
+    obs_data_set_bool(stream_output_settings, "low_latency_mode_enabled", enable_low_latency_mode);    
 
     obs_output_update(stream_output, stream_output_settings);
 
