@@ -36,15 +36,13 @@ void Check() {
     ModulesLoader modules_loader {};
     modules_loader.LoadAuthorized();
 
-    // --------------------------------------------------------------------------------------------
-
     cout << string(64, '=') << endl;
 
     // --- source ---------------------------------------------------------------------------------
 
     auto scene = obs_scene_create("scene");
     // ? find a function sets the process id for a source
-    auto source = obs_source_create("game_capture", "World of Tanks", nullptr, nullptr);
+    auto source = obs_source_create("game_capture", "World of Tanks", nullptr, nullptr); // need settings ?
 
     auto scene_item = obs_scene_add(scene, source);
     obs_sceneitem_addref(scene_item);
@@ -58,20 +56,16 @@ void Check() {
     obs_sceneitem_set_bounds_type(scene_item, OBS_BOUNDS_SCALE_INNER);
     obs_sceneitem_set_bounds_alignment(scene_item, 0); // center
 
+    obs_set_output_source(0, source); // 
 
-    auto video_encoder = obs_video_encoder_create("obs_x264", "simple_h264_stream", nullptr, nullptr);
-    auto audio_encoder = obs_audio_encoder_create("mf_aac", "simple_aac", nullptr, 0, nullptr);
-
-    // obs_set_output_source(0, source);
-
+    auto video_encoder = obs_video_encoder_create("obs_x264", "simple_h264_stream", nullptr, nullptr); // need settings ?
+    auto audio_encoder = obs_audio_encoder_create("mf_aac", "simple_aac", nullptr, 0, nullptr); // need settings ?
+                                                                                                
     // - start graphics & audio threads
-
-    // - start stream
-
 
     // --- service --------------------------------------------------------------------------------
 
-    auto service = obs_service_create("rtmp_common", "default_service", nullptr, nullptr); // need settings
+    auto service = obs_service_create("rtmp_common", "default_service", nullptr, nullptr); // need settings ?
 
     auto h264_settings = obs_data_create();
     auto aac_settings = obs_data_create();
@@ -91,13 +85,25 @@ void Check() {
     obs_encoder_update(audio_encoder, aac_settings);
 
     auto output_type = obs_service_get_output_type(service);
-    auto url = obs_service_get_url(service);
+    
+    auto url = obs_service_get_url(service);           // ? empty
+    auto key = obs_service_get_key(service);           // ? empty
+    auto username = obs_service_get_username(service); // ? nullptr
+    auto password = obs_service_get_password(service); // ? nullptr
+
+    // --- a/v set ----
+
+    auto audio = obs_get_audio(); // !
+
+    obs_encoder_set_video(video_encoder, video); // !
+    obs_encoder_set_audio(audio_encoder, audio); // !
+
+    // ----------------
 
 
     // --- stream output --------------------------------------------------------------------------
 
-    auto stream_output = obs_output_create(output_type, "simple_stream", nullptr, nullptr); // type - rtmp_output
-    obs_output_addref(stream_output); // ?
+    auto stream_output = obs_output_create(output_type, "simple_stream", nullptr, nullptr); // need settings ?
 
     // --- SIGNALS --- for obs-signal from wrappers ("obs.hpp")
     // streamDelayStarting.Connect(obs_output_get_signal_handler(streamOutput), "starting", OBSStreamStarting, this);
@@ -129,15 +135,14 @@ void Check() {
 
     obs_output_update(stream_output, stream_output_settings);
 
-
-    if (!reconnect)
-        max_retries = 0;
+    if (!reconnect) { max_retries = 0; }
 
     obs_output_set_delay(stream_output, use_delay ? delay_sec : 0, preserve_delay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
     obs_output_set_reconnect_settings(stream_output, max_retries, retry_delay);
 
-    // --- stream_output --------------------------------------------------------------------------
+    // --- stream_output --------------------------------------------------------------------------    
 
+    
     obs_output_start(stream_output);
 
     // --------------------------------------------------------------------------------------------
@@ -146,7 +151,10 @@ void Check() {
 
     // --- release memory -------------------------------------------------------------------------
 
+    obs_output_stop(stream_output);
     obs_output_release(stream_output);
+
+
 
     obs_data_release(stream_output_settings);
 
