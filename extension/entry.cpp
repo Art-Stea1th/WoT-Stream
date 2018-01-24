@@ -12,9 +12,6 @@ int main() {
 
     Check();
     cin.get();
-
-    /*Check();
-    cin.get();*/
 }
 
 void Check() {
@@ -24,7 +21,6 @@ void Check() {
     // TODO: 'll wrap in the object oriented model after clarifying all of the requirements
     // TODO: IMPORTANT! to use a wrappers from "obs.hpp" for simplify the interaction with it
     // --------------------------------------------------------------------------------------------
-
 
 
     // + init audio, video, created default scene & game source, configured -----------------------
@@ -41,9 +37,22 @@ void Check() {
     // --- source ---------------------------------------------------------------------------------
 
     auto scene = obs_scene_create("scene");
-    // ? find a function sets the process id for a source
-    auto source = obs_source_create("game_capture", "World of Tanks", nullptr, nullptr); // need settings ?
 
+    // ? find a function sets the process id for a source
+    // auto source = obs_source_create("game_capture", "World of Tanks", nullptr, nullptr); // need settings ?
+    auto source = obs_source_create("monitor_capture", "Display Capture", nullptr, nullptr); // need settings ?
+
+    //obs_source_set_volume(source, (float)1.0);
+    //obs_source_set_sync_offset(source, 0);
+    //obs_source_set_audio_mixers(source, 0);
+    //obs_source_set_flags(source, 0);
+    //obs_source_set_enabled(source, true);
+    //obs_source_set_muted(source, false);
+
+    //obs_source_set_deinterlace_mode(source, OBS_DEINTERLACE_MODE_DISABLE);
+    //obs_source_set_deinterlace_field_order(source, OBS_DEINTERLACE_FIELD_ORDER_TOP);
+    //obs_source_set_monitoring_type(source, OBS_MONITORING_TYPE_NONE);
+    
     auto scene_item = obs_scene_add(scene, source);
     obs_sceneitem_addref(scene_item);
 
@@ -58,10 +67,9 @@ void Check() {
 
     obs_set_output_source(0, source); // 
 
-    auto video_encoder = obs_video_encoder_create("obs_x264", "simple_h264_stream", nullptr, nullptr); // need settings ?
-    auto audio_encoder = obs_audio_encoder_create("mf_aac", "simple_aac", nullptr, 0, nullptr); // need settings ?
-                                                                                                
-    // - start graphics & audio threads
+    auto video_encoder = obs_video_encoder_create("obs_x264", "simple_h264_stream", nullptr, nullptr);
+    auto audio_encoder = obs_audio_encoder_create("mf_aac", "simple_aac", nullptr, 0, nullptr);
+
 
     // --- service --------------------------------------------------------------------------------
 
@@ -97,19 +105,11 @@ void Check() {
 
     // ----------------
 
-    auto output_type = obs_service_get_output_type(service);
-
-                                                       
+    auto output_type = obs_service_get_output_type(service);                                                       
                                                        
     // --- stream output --------------------------------------------------------------------------
 
     auto stream_output = obs_output_create(output_type, "simple_stream", nullptr, nullptr);
-
-    // --- SIGNALS --- for obs-signal from wrappers ("obs.hpp")
-    // streamDelayStarting.Connect(obs_output_get_signal_handler(streamOutput), "starting", OBSStreamStarting, this);
-    // streamStopping.Connect(obs_output_get_signal_handler(streamOutput), "stopping", OBSStreamStopping, this);
-    // startStreaming.Connect(obs_output_get_signal_handler(streamOutput), "start", OBSStartStreaming, this);
-    // stopStreaming.Connect(obs_output_get_signal_handler(streamOutput), "stop", OBSStopStreaming, this);
 
     auto supported_audio_codec = obs_output_get_supported_audio_codecs(stream_output);
 
@@ -140,8 +140,7 @@ void Check() {
     obs_output_set_delay(stream_output, use_delay ? delay_sec : 0, preserve_delay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
     obs_output_set_reconnect_settings(stream_output, max_retries, retry_delay);
 
-    // --- stream_output --------------------------------------------------------------------------    
-
+    // --- stream_output --------------------------------------------------------------------------
     
     obs_output_start(stream_output);
 
@@ -153,8 +152,6 @@ void Check() {
 
     obs_output_stop(stream_output);
     obs_output_release(stream_output);
-
-
 
     obs_data_release(stream_output_settings);
 
