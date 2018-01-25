@@ -9,21 +9,18 @@ void ResetAudio();
 void ResetVideo();
 
 int main() {
-
     Check();
     cin.get();
 }
 
 void Check() {
 
-
     // --------------------------------------------------------------------------------------------
     // TODO: 'll wrap in the object oriented model after clarifying all of the requirements
     // TODO: IMPORTANT! to use a wrappers from "obs.hpp" for simplify the interaction with it
     // --------------------------------------------------------------------------------------------
 
-
-    // + init audio, video, created default scene & game source, configured -----------------------
+    // + startup, init audio, video, load modules -------------------------------------------------
 
     Startup();
     ResetAudio();
@@ -34,25 +31,29 @@ void Check() {
 
     cout << string(64, '=') << endl;
 
-    // --- source ---------------------------------------------------------------------------------
+    // --- scene ----------------------------------------------------------------------------------
 
     auto scene = obs_scene_create("scene");
 
-    // ? find a function sets the process id for a source
-    // auto source = obs_source_create("game_capture", "World of Tanks", nullptr, nullptr); // need settings ?
-    auto source = obs_source_create("monitor_capture", "Display Capture", nullptr, nullptr); // need settings ?
+    // --- source ---------------------------------------------------------------------------------
 
-    //obs_source_set_volume(source, (float)1.0);
-    //obs_source_set_sync_offset(source, 0);
-    //obs_source_set_audio_mixers(source, 0);
-    //obs_source_set_flags(source, 0);
-    //obs_source_set_enabled(source, true);
-    //obs_source_set_muted(source, false);
-
-    //obs_source_set_deinterlace_mode(source, OBS_DEINTERLACE_MODE_DISABLE);
-    //obs_source_set_deinterlace_field_order(source, OBS_DEINTERLACE_FIELD_ORDER_TOP);
-    //obs_source_set_monitoring_type(source, OBS_MONITORING_TYPE_NONE);
+    auto source_settings = obs_data_create();
+    obs_data_set_string(source_settings, "capture_mode", "window");
+    obs_data_set_string(source_settings, "window", "WoT Client:App:WorldOfTanks.exe");
+    obs_data_set_int(source_settings, "priority", 2); // WINDOW_PRIORITY_EXE
+    obs_data_set_bool(source_settings, "sli_compatibility", false);
+    obs_data_set_bool(source_settings, "capture_cursor", true);
+    obs_data_set_bool(source_settings, "allow_transparency", false);
+    obs_data_set_bool(source_settings, "force_scaling", false);
+    obs_data_set_bool(source_settings, "limit_framerate", false);
+    obs_data_set_bool(source_settings, "capture_overlays", false);
+    obs_data_set_bool(source_settings, "anti_cheat_hook", true);
+    obs_data_set_string(source_settings, "scale_res", "1920x1080");
     
+    auto source = obs_source_create("game_capture", "World of Tanks", source_settings, nullptr);
+
+    // --- sceneitem ------------------------------------------------------------------------------
+
     auto scene_item = obs_scene_add(scene, source);
     obs_sceneitem_addref(scene_item);
 
@@ -62,24 +63,12 @@ void Check() {
     obs_sceneitem_set_scale(scene_item, &scale);
 
     obs_sceneitem_set_bounds(scene_item, &bounds);
-    obs_sceneitem_set_bounds_type(scene_item, OBS_BOUNDS_SCALE_INNER);
+    obs_sceneitem_set_bounds_type(scene_item, OBS_BOUNDS_SCALE_OUTER);
     obs_sceneitem_set_bounds_alignment(scene_item, 0); // center
 
     obs_set_output_source(0, source); // 
 
-    auto video_encoder = obs_video_encoder_create("obs_x264", "simple_h264_stream", nullptr, nullptr);
-    auto audio_encoder = obs_audio_encoder_create("mf_aac", "simple_aac", nullptr, 0, nullptr);
-
-
-    // --- service --------------------------------------------------------------------------------
-
-    auto rtpm_settings = obs_data_create();
-
-    obs_data_set_string(rtpm_settings, "key", "0000-0000-0000-0000"); // <<------------ place youtube token here
-    obs_data_set_string(rtpm_settings, "server", "rtmp://a.rtmp.youtube.com/live2");
-    obs_data_set_string(rtpm_settings, "service", "YouTube / YouTube Gaming");
-
-    auto service = obs_service_create("rtmp_common", "default_service", rtpm_settings, nullptr);
+    // --- encoders -------------------------------------------------------------------------------    
 
     auto h264_settings = obs_data_create();
     auto aac_settings = obs_data_create();
@@ -90,32 +79,32 @@ void Check() {
     obs_data_set_string(aac_settings, "rate_control", "CBR");
     obs_data_set_int(aac_settings, "bitrate", 160);
 
-    obs_service_apply_encoder_settings(service, h264_settings, aac_settings);
+    auto video_encoder = obs_video_encoder_create("obs_x264", "simple_h264_stream", h264_settings, nullptr);
+    auto audio_encoder = obs_audio_encoder_create("mf_aac", "simple_aac", aac_settings, 0, nullptr);
+
+    // --- set: a/v -------------------------------------------------------------------------------
 
     auto video = obs_get_video();
-    auto audio = obs_get_audio(); // !
+    auto audio = obs_get_audio();
+    
+    obs_encoder_set_video(video_encoder, video);
+    obs_encoder_set_audio(audio_encoder, audio);
+    
+    // --- service --------------------------------------------------------------------------------
 
-    obs_encoder_update(video_encoder, h264_settings);
-    obs_encoder_update(audio_encoder, aac_settings);
+    auto rtpm_settings = obs_data_create();
 
-    // --- a/v set ----
+    obs_data_set_string(rtpm_settings, "key", "0000-0000-0000-0000"); // <<------------ place youtube token here
+    obs_data_set_string(rtpm_settings, "server", "rtmp://a.rtmp.youtube.com/live2");
+    obs_data_set_string(rtpm_settings, "service", "YouTube / YouTube Gaming");
 
-    obs_encoder_set_video(video_encoder, video); // !
-    obs_encoder_set_audio(audio_encoder, audio); // !
+    auto service = obs_service_create("rtmp_common", "default_service", rtpm_settings, nullptr);    
 
-    // ----------------
-
+    obs_service_apply_encoder_settings(service, h264_settings, aac_settings);
+    
     auto output_type = obs_service_get_output_type(service);                                                       
                                                        
     // --- stream output --------------------------------------------------------------------------
-
-    auto stream_output = obs_output_create(output_type, "simple_stream", nullptr, nullptr);
-
-    auto supported_audio_codec = obs_output_get_supported_audio_codecs(stream_output);
-
-    obs_output_set_video_encoder(stream_output, video_encoder);
-    obs_output_set_audio_encoder(stream_output, audio_encoder, 0);
-    obs_output_set_service(stream_output, service);
 
     auto stream_output_settings = obs_data_create();
 
@@ -129,23 +118,29 @@ void Check() {
     auto enable_new_socket_loop = false;
     auto enable_low_latency_mode = false;
 
-    obs_data_set_string(stream_output_settings, "bind_ip", bind_IP);
-    obs_data_set_bool(stream_output_settings, "new_socket_loop_enabled", enable_new_socket_loop);
-    obs_data_set_bool(stream_output_settings, "low_latency_mode_enabled", enable_low_latency_mode);    
-
-    obs_output_update(stream_output, stream_output_settings);
-
     if (!reconnect) { max_retries = 0; }
 
+    obs_data_set_string(stream_output_settings, "bind_ip", bind_IP);
+    obs_data_set_bool(stream_output_settings, "new_socket_loop_enabled", enable_new_socket_loop);
+    obs_data_set_bool(stream_output_settings, "low_latency_mode_enabled", enable_low_latency_mode);
+    
+    auto stream_output = obs_output_create(output_type, "simple_stream", stream_output_settings, nullptr);
+
+    obs_output_set_video_encoder(stream_output, video_encoder);
+    obs_output_set_audio_encoder(stream_output, audio_encoder, 0);
+    obs_output_set_service(stream_output, service);
+    
     obs_output_set_delay(stream_output, use_delay ? delay_sec : 0, preserve_delay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
     obs_output_set_reconnect_settings(stream_output, max_retries, retry_delay);
 
-    // --- stream_output --------------------------------------------------------------------------
-    
+    // --------------------------------------------------------------------------------------------
+
     obs_output_start(stream_output);
 
-    // --------------------------------------------------------------------------------------------
     cout << string(64, '=') << endl;
+    cout << "stream & capture started" << endl;
+    cout << string(64, '=') << endl;
+
     cin.get();
 
     // --- release memory -------------------------------------------------------------------------
