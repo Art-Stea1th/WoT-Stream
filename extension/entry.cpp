@@ -35,26 +35,46 @@ void Check() {
 
     auto scene = obs_scene_create("scene");
 
-    // --- source ---------------------------------------------------------------------------------
+    // --- game_capture_source --------------------------------------------------------------------
 
-    auto source_settings = obs_data_create();
-    obs_data_set_string(source_settings, "capture_mode", "window");
-    obs_data_set_string(source_settings, "window", "WoT Client:App:WorldOfTanks.exe");
-    obs_data_set_int(source_settings, "priority", 2); // WINDOW_PRIORITY_EXE
-    obs_data_set_bool(source_settings, "sli_compatibility", false);
-    obs_data_set_bool(source_settings, "capture_cursor", true);
-    obs_data_set_bool(source_settings, "allow_transparency", false);
-    obs_data_set_bool(source_settings, "force_scaling", false);
-    obs_data_set_bool(source_settings, "limit_framerate", false);
-    obs_data_set_bool(source_settings, "capture_overlays", false);
-    obs_data_set_bool(source_settings, "anti_cheat_hook", true);
-    obs_data_set_string(source_settings, "scale_res", "1920x1080");
+    auto gc_settings = obs_data_create();
+    obs_data_set_string(gc_settings, "capture_mode", "window");
+    obs_data_set_string(gc_settings, "window", "WoT Client:App:WorldOfTanks.exe");
+    obs_data_set_int(gc_settings, "priority", 2); // WINDOW_PRIORITY_EXE
+    obs_data_set_bool(gc_settings, "sli_compatibility", false);
+    obs_data_set_bool(gc_settings, "capture_cursor", true);
+    obs_data_set_bool(gc_settings, "allow_transparency", false);
+    obs_data_set_bool(gc_settings, "force_scaling", false);
+    obs_data_set_bool(gc_settings, "limit_framerate", false);
+    obs_data_set_bool(gc_settings, "capture_overlays", false);
+    obs_data_set_bool(gc_settings, "anti_cheat_hook", true);
+    obs_data_set_string(gc_settings, "scale_res", "1920x1080");
+
+    obs_data_set_default_double(gc_settings, "volume", 1.0);
+    obs_data_set_default_int(gc_settings, "mixers", 0xF);
+    obs_data_set_default_int(gc_settings, "flags", 0);
+    obs_data_set_default_bool(gc_settings, "enabled", true);
+
+    auto game_capture_source = obs_source_create("game_capture", "World of Tanks", gc_settings, nullptr);
+
+    obs_set_output_source(0, game_capture_source);
+
+    // --- wasapi_output_source -------------------------------------------------------------------
+
+    auto ws_settings = obs_data_create();
+    obs_data_set_default_double(ws_settings, "volume", 1.0);
+    obs_data_set_default_int(ws_settings, "mixers", 0xFF);
+    obs_data_set_default_int(ws_settings, "flags", 0);
+    obs_data_set_default_bool(ws_settings, "enabled", true);
+    obs_data_set_default_bool(ws_settings, "muted", false);
+
+    auto wasapi_output_source = obs_source_create("wasapi_output_capture", "Desktop Audio", ws_settings, nullptr);
     
-    auto source = obs_source_create("game_capture", "World of Tanks", source_settings, nullptr);
+    obs_set_output_source(1, wasapi_output_source);
 
     // --- sceneitem ------------------------------------------------------------------------------
 
-    auto scene_item = obs_scene_add(scene, source);
+    auto scene_item = obs_scene_add(scene, game_capture_source);
     obs_sceneitem_addref(scene_item);
 
     vec2 pos { 0, 0 }, scale { 1, 1 }, bounds { 1920, 1080 };
@@ -65,9 +85,7 @@ void Check() {
     obs_sceneitem_set_bounds(scene_item, &bounds);
     obs_sceneitem_set_bounds_type(scene_item, OBS_BOUNDS_SCALE_OUTER);
     obs_sceneitem_set_bounds_alignment(scene_item, 0); // center
-
-    obs_set_output_source(0, source); // 
-
+                                                       
     // --- encoders -------------------------------------------------------------------------------    
 
     auto h264_settings = obs_data_create();
@@ -135,6 +153,8 @@ void Check() {
 
     // --------------------------------------------------------------------------------------------
 
+    std::this_thread::sleep_for(5s);
+
     obs_output_start(stream_output);
 
     cout << string(64, '=') << endl;
@@ -159,7 +179,7 @@ void Check() {
     obs_encoder_release(video_encoder);
 
     obs_sceneitem_release(scene_item);
-    obs_source_release(source);
+    obs_source_release(game_capture_source);
     obs_scene_release(scene);
 
     obs_shutdown();
