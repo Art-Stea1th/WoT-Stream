@@ -17,7 +17,6 @@ void Check() {
 
     // --------------------------------------------------------------------------------------------
     // TODO: 'll wrap in the object oriented model after clarifying all of the requirements
-    // TODO: IMPORTANT! to use a wrappers from "obs.hpp" for simplify the interaction with it
     // --------------------------------------------------------------------------------------------
 
     // + startup, init audio, video, load modules -------------------------------------------------
@@ -69,7 +68,7 @@ void Check() {
     obs_data_set_default_bool(ws_settings, "muted", false);
 
     auto wasapi_output_source = obs_source_create("wasapi_output_capture", "Desktop Audio", ws_settings, nullptr);
-    
+
     obs_set_output_source(1, wasapi_output_source);
 
     // --- sceneitem ------------------------------------------------------------------------------
@@ -85,7 +84,7 @@ void Check() {
     obs_sceneitem_set_bounds(scene_item, &bounds);
     obs_sceneitem_set_bounds_type(scene_item, OBS_BOUNDS_SCALE_OUTER);
     obs_sceneitem_set_bounds_alignment(scene_item, 0); // center
-                                                       
+
     // --- encoders -------------------------------------------------------------------------------    
 
     auto h264_settings = obs_data_create();
@@ -104,10 +103,10 @@ void Check() {
 
     auto video = obs_get_video();
     auto audio = obs_get_audio();
-    
+
     obs_encoder_set_video(video_encoder, video);
     obs_encoder_set_audio(audio_encoder, audio);
-    
+
     // --- service --------------------------------------------------------------------------------
 
     auto rtpm_settings = obs_data_create();
@@ -116,12 +115,12 @@ void Check() {
     obs_data_set_string(rtpm_settings, "server", "rtmp://a.rtmp.youtube.com/live2");
     obs_data_set_string(rtpm_settings, "service", "YouTube / YouTube Gaming");
 
-    auto service = obs_service_create("rtmp_common", "default_service", rtpm_settings, nullptr);    
+    auto service = obs_service_create("rtmp_common", "default_service", rtpm_settings, nullptr);
 
     obs_service_apply_encoder_settings(service, h264_settings, aac_settings);
-    
-    auto output_type = obs_service_get_output_type(service);                                                       
-                                                       
+
+    auto output_type = obs_service_get_output_type(service);
+
     // --- stream output --------------------------------------------------------------------------
 
     auto stream_output_settings = obs_data_create();
@@ -141,19 +140,17 @@ void Check() {
     obs_data_set_string(stream_output_settings, "bind_ip", bind_IP);
     obs_data_set_bool(stream_output_settings, "new_socket_loop_enabled", enable_new_socket_loop);
     obs_data_set_bool(stream_output_settings, "low_latency_mode_enabled", enable_low_latency_mode);
-    
+
     auto stream_output = obs_output_create(output_type, "simple_stream", stream_output_settings, nullptr);
 
     obs_output_set_video_encoder(stream_output, video_encoder);
     obs_output_set_audio_encoder(stream_output, audio_encoder, 0);
     obs_output_set_service(stream_output, service);
-    
+
     obs_output_set_delay(stream_output, use_delay ? delay_sec : 0, preserve_delay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
     obs_output_set_reconnect_settings(stream_output, max_retries, retry_delay);
 
     // --------------------------------------------------------------------------------------------
-
-    std::this_thread::sleep_for(5s);
 
     obs_output_start(stream_output);
 
@@ -179,6 +176,7 @@ void Check() {
     obs_encoder_release(video_encoder);
 
     obs_sceneitem_release(scene_item);
+    obs_source_release(wasapi_output_source);
     obs_source_release(game_capture_source);
     obs_scene_release(scene);
 

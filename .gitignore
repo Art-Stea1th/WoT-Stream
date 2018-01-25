@@ -1,7 +1,7 @@
 .vs/
 
-build/
-install/
+build/*
+install/*
 
 dependencies/obs_sln/*
 !dependencies/obs_sln/make_obs_sln_here

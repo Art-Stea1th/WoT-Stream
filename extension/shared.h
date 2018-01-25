@@ -1,5 +1,6 @@
 #pragma once
 
+
 // stl
 
 #include <exception>
@@ -20,4 +21,4 @@
 
 // obs
 
-#include "../dependencies/obs_rep/libobs/obs.hpp"
+#include "../dependencies/obs_rep/libobs/obs.h"

@@ -7,17 +7,17 @@
 
 namespace wot_stream::extension::obs_management {
 
-    class ObsController {
+    class OBSContext {
     public:
-        ObsController(ObsController const&) = delete;
-        void operator=(ObsController const&) = delete;
-        ~ObsController();
+        OBSContext(OBSContext const&) = delete;
+        void operator=(OBSContext const&) = delete;
+        ~OBSContext();
 
-        static ObsController& GetInstance();
+        static OBSContext& GetInstance();
 
 
     private:
-        ObsController();
+        OBSContext();
 
         std::unique_ptr<Source> source;
         std::unique_ptr<Output> output;
