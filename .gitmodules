@@ -1,3 +1,3 @@
-[submodule "obs"]
+[submodule "sources/core/dependencies/obs_rep"]
 	path = sources/core/dependencies/obs_rep
 	url = https://github.com/jp9000/obs-studio
