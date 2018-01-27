@@ -9,11 +9,11 @@ namespace wot_stream::extension::obs_management {
         default_data_path("../../data/obs-plugins/%module%/") {  // 'll be changed
 
         authorized_module_names = {
-            "win-wasapi", "win-mf", "win-dshow", "win-capture", "win-decklink",
+            "win-wasapi", "win-mf", "win-dshow", "win-capture", //"win-decklink",
             "rtmp-services",
-            "obs-x264", "obs-qsv11", "obs-outputs", "obs-ffmpeg",
-                                                    "image-source",                                                    
-                                                    "coreaudio-encoder"
+            "obs-x264", "obs-qsv11", "obs-outputs", //"obs-ffmpeg",
+                                                    //"image-source",                                                    
+                                                    //"coreaudio-encoder"
         };
     }
 

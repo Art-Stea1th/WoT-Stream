@@ -111,7 +111,7 @@ void Check() {
 
     auto rtpm_settings = obs_data_create();
 
-    obs_data_set_string(rtpm_settings, "key", "0000-0000-0000-0000"); // <<------------ place youtube token here
+    obs_data_set_string(rtpm_settings, "key", "4vfj-4fmx-25ue-71pk"); // <<------------ place youtube token here
     obs_data_set_string(rtpm_settings, "server", "rtmp://a.rtmp.youtube.com/live2");
     obs_data_set_string(rtpm_settings, "service", "YouTube / YouTube Gaming");
 
@@ -151,6 +151,8 @@ void Check() {
     obs_output_set_reconnect_settings(stream_output, max_retries, retry_delay);
 
     // --------------------------------------------------------------------------------------------
+
+    // std::this_thread::sleep_for(5s);
 
     obs_output_start(stream_output);
 

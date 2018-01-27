@@ -1,18 +1,9 @@
 #pragma once
-#include "../shared.h"
+#include "../interfaces.h"
 
 namespace wot_stream::extension::helpers {
 
-    class ICommand {
-    public:
-        virtual bool CanExecute() = 0;
-        virtual void Execute() = 0;
-
-        virtual ~ICommand() {}
-
-    protected:
-        ICommand() = default;
-    };
+    using namespace interfaces;
 
     class Command : public ICommand {
     public:

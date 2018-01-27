@@ -1,7 +1,7 @@
 .vs/
 
-build/*
-install/*
+build/Debug/
+build/Release/
 
-dependencies/obs_sln/*
-!dependencies/obs_sln/make_obs_sln_here
+sources/core/dependencies/obs_sln/*
+!sources/core/dependencies/obs_sln/make_obs_sln_here
