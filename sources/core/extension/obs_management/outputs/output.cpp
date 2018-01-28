@@ -22,8 +22,21 @@ namespace wot_stream::extension::obs_management::outputs {
         obs_output_update(output, this->settings);
     }
 
-    void Output::Start() { obs_output_start(output); }
-    void Output::Stop() { obs_output_stop(output); }
+    void Output::Start() {
+        if (state != State::Started) {
+            obs_output_start(output);    // !!! internal async. call, I need a notification on a state changed
+        }
+        state = State::Started;
+    }
+
+    void Output::Stop() {
+        if (state != State::Stopped) {
+            obs_output_stop(output);     // !!! internal async. call, I need a notification on a state changed
+        }
+        state = State::Stopped;
+    }
+
+    bool Output::Started() { return state == State::Started; }
 
 
     StreamOutput::StreamOutput() {
@@ -38,6 +51,6 @@ namespace wot_stream::extension::obs_management::outputs {
         settings
             .SetString("bind_ip", "default")
             .SetBool("new_socket_loop_enabled", false)
-            .SetBool("low_latency_mode_enabled", false);        
+            .SetBool("low_latency_mode_enabled", false);
     }
 }

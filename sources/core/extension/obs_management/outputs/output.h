@@ -24,13 +24,17 @@ namespace wot_stream::extension::obs_management::outputs {
         void Start();
         void Stop();
 
+        bool Started();
+
     protected:
         Output();
 
-        enum class State { Started, Stopped };
+        enum class State { Stopped, Started };
 
         Settings settings;
         obs_output* output;
+
+        State state;
     };
 
     class StreamOutput : public Output {
