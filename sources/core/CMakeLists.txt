@@ -10,11 +10,18 @@ set(OBS_SLN "${WS_DEPS}/obs_sln")
 set(WS_ROOT "${CMAKE_SOURCE_DIR}/extension")
 
 set(WS_INCLUDE_DIRS
+
     "${OBS_SRC}/libobs"
+
     "${WS_ROOT}"
     "${WS_ROOT}/helpers"
 	"${WS_ROOT}/utilities"
 	"${WS_ROOT}/obs_management"
+
+	"${WS_ROOT}/obs_management/sources"
+	"${WS_ROOT}/obs_management/services"
+	"${WS_ROOT}/obs_management/encoders"
+	"${WS_ROOT}/obs_management/outputs"
 )
 
 include_directories(WS_INCLUDE_DIRS)
@@ -34,5 +41,6 @@ set_property(TARGET wot_stream PROPERTY CXX_STANDARD 17)
 find_library(LIB_OBS NAMES "obs" PATHS "${OBS_SLN}/libobs/Debug/")
 target_link_libraries(wot_stream "${LIB_OBS}")
 
+
 # hardcode
-set_property(TARGET wot_stream PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${OBS_SLN}/rundir/Debug/bin/32bit") # ??
+set_property(TARGET wot_stream PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${OBS_SLN}/rundir/Debug/bin/32bit") # ?

@@ -1,7 +1,9 @@
 #include "obs_management/modules_loader.h"
+#include "obs_management/sources/wot_scene.h"
 
-using namespace wot_stream::extension::obs_management;
 using namespace std;
+using namespace wot_stream::extension::obs_management;
+using namespace wot_stream::extension::obs_management::sources;
 
 void Check();
 void Startup();
@@ -10,6 +12,7 @@ void ResetVideo();
 
 int main() {
     Check();
+    obs_shutdown();
     cin.get();
 }
 
@@ -19,7 +22,7 @@ void Check() {
     // TODO: 'll wrap in the object oriented model after clarifying all of the requirements
     // --------------------------------------------------------------------------------------------
 
-    // + startup, init audio, video, load modules -------------------------------------------------
+    // + startup, init audio, video, load modules, create scene, sources --------------------------
 
     Startup();
     ResetAudio();
@@ -30,62 +33,7 @@ void Check() {
 
     cout << string(64, '=') << endl;
 
-    // --- scene ----------------------------------------------------------------------------------
-
-    auto scene = obs_scene_create("scene");
-
-    // --- game_capture_source --------------------------------------------------------------------
-
-    auto gc_settings = obs_data_create();
-    obs_data_set_string(gc_settings, "capture_mode", "window");
-    obs_data_set_string(gc_settings, "window", "WoT Client:App:WorldOfTanks.exe");
-    obs_data_set_int(gc_settings, "priority", 2); // WINDOW_PRIORITY_EXE
-    obs_data_set_bool(gc_settings, "sli_compatibility", false);
-    obs_data_set_bool(gc_settings, "capture_cursor", true);
-    obs_data_set_bool(gc_settings, "allow_transparency", false);
-    obs_data_set_bool(gc_settings, "force_scaling", false);
-    obs_data_set_bool(gc_settings, "limit_framerate", false);
-    obs_data_set_bool(gc_settings, "capture_overlays", false);
-    obs_data_set_bool(gc_settings, "anti_cheat_hook", true);
-    obs_data_set_string(gc_settings, "scale_res", "1920x1080");
-
-    obs_data_set_default_double(gc_settings, "volume", 1.0);
-    obs_data_set_default_int(gc_settings, "mixers", 0xF);
-    obs_data_set_default_int(gc_settings, "flags", 0);
-    obs_data_set_default_bool(gc_settings, "enabled", true);
-
-    auto game_capture_source = obs_source_create("game_capture", "World of Tanks", gc_settings, nullptr);
-
-    obs_set_output_source(0, game_capture_source);
-
-    // --- wasapi_output_source -------------------------------------------------------------------
-
-    auto ws_settings = obs_data_create();
-    obs_data_set_default_double(ws_settings, "volume", 1.0);
-    obs_data_set_default_int(ws_settings, "mixers", 0xFF);
-    obs_data_set_default_int(ws_settings, "flags", 0);
-    obs_data_set_default_bool(ws_settings, "enabled", true);
-    obs_data_set_default_bool(ws_settings, "muted", false);
-
-    auto wasapi_output_source = obs_source_create("wasapi_output_capture", "Desktop Audio", ws_settings, nullptr);
-
-    obs_set_output_source(1, wasapi_output_source);
-
-    // --- sceneitem ------------------------------------------------------------------------------
-
-    auto scene_item = obs_scene_add(scene, game_capture_source);
-    obs_sceneitem_addref(scene_item);
-
-    vec2 pos { 0, 0 }, scale { 1, 1 }, bounds { 1920, 1080 };
-
-    obs_sceneitem_set_pos(scene_item, &pos);
-    obs_sceneitem_set_scale(scene_item, &scale);
-
-    obs_sceneitem_set_bounds(scene_item, &bounds);
-    obs_sceneitem_set_bounds_type(scene_item, OBS_BOUNDS_SCALE_OUTER);
-    obs_sceneitem_set_bounds_alignment(scene_item, 0); // center
-
-    // --- encoders -------------------------------------------------------------------------------    
+    WoTScene scene {};
 
     auto h264_settings = obs_data_create();
     auto aac_settings = obs_data_create();
@@ -111,7 +59,7 @@ void Check() {
 
     auto rtpm_settings = obs_data_create();
 
-    obs_data_set_string(rtpm_settings, "key", "4vfj-4fmx-25ue-71pk"); // <<------------ place youtube token here
+    obs_data_set_string(rtpm_settings, "key", "4a72-yvcj-bpyx-bajq"); // <<------------ place youtube token here
     obs_data_set_string(rtpm_settings, "server", "rtmp://a.rtmp.youtube.com/live2");
     obs_data_set_string(rtpm_settings, "service", "YouTube / YouTube Gaming");
 
@@ -177,12 +125,15 @@ void Check() {
     obs_encoder_release(audio_encoder);
     obs_encoder_release(video_encoder);
 
-    obs_sceneitem_release(scene_item);
-    obs_source_release(wasapi_output_source);
-    obs_source_release(game_capture_source);
-    obs_scene_release(scene);
+    // obs_sceneitem_release(sa_scene_item);
+    // obs_sceneitem_release(gc_scene_item);
 
-    obs_shutdown();
+    /*system_audio_source.~Source();
+    game_capture_source.~Source();*/
+
+    // obs_scene_release(scene);
+
+    // obs_shutdown();
 }
 
 void Startup() {

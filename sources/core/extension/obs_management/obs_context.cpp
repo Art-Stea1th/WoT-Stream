@@ -3,6 +3,18 @@
 
 namespace wot_stream::extension::obs_management {
 
-    OBSContext::OBSContext() {}
-    OBSContext::~OBSContext() {}
+    using Source = sources::Source;
+    using SourceType = sources::SourceType;
+
+    OBSContext::OBSContext() {
+        Initialize();
+    }
+
+    OBSContext::~OBSContext() {
+
+    }
+
+    void OBSContext::Initialize() {
+
+    }
 }
