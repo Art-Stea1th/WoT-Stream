@@ -4,33 +4,41 @@
     showing an image, or playing audio.
 */
 #pragma once
-#include "../../shared.h"
+#include "../settings.h"
 
 namespace wot_stream::extension::obs_management::sources {
 
-    enum class SourceType { Unknown, GameCapture, SystemAudio };
-
     class Source {
     public:
-        Source(SourceType type);
         virtual ~Source();
-
-        SourceType GetType();
-        std::string GetName();
-
         operator obs_source*() const;
 
-    private:
+        void UpdateSettings(const Settings &settings);
 
-        obs_source* MakeBy(SourceType type);
+    protected:
+        Source();
 
-        obs_data* GetGameCapturePreset();
-        obs_data* GetSystemAudioPreset();
-
-        SourceType type = SourceType::Unknown;
-        std::string name = "";
-
-        obs_data* settings;
+        Settings settings;
         obs_source* source;
     };
+
+    class GameCaptureSource : public Source {
+    public:
+        GameCaptureSource();
+        ~GameCaptureSource();
+
+    protected:
+        void InitializeDefaults();
+    };
+
+
+    class SystemAudioSource : public Source {
+    public:
+        SystemAudioSource();
+        ~SystemAudioSource();
+
+    protected:
+        void InitializeDefaults();
+    };
+    
 }

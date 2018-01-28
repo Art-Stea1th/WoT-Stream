@@ -4,22 +4,36 @@
     to log in and use their APIs to do things such as get the RTMP servers or control the channel.
 */
 #pragma once
-#include "../../shared.h"
+#include "../settings.h"
+#include "../encoders/encoder.h"
 
 namespace wot_stream::extension::obs_management::services {
 
-    enum class Destination { YouTube, Twitch, Facebook };
-
     class Service {
     public:
-        Service(Destination destination, const std::string &token);
-        ~Service();
+        virtual ~Service();
+        operator obs_service* () const;
 
-    private:
+        void ApplyEncoders(const encoders::Encoder &video_encoder, const encoders::Encoder &audio_encoder);
+        void UpdateToken(const std::string &token);
+        void UpdateSettings(const Settings &settings);
 
-        void Initialize(Destination destination, const std::string &token);
+        const char* GetOutputType();
 
+    protected:
+        Service();
+
+        Settings settings;
+        obs_service* service;
+        char* output_type;
     };
 
-    
+    class YouTubeService : public Service {
+    public:
+        ~YouTubeService();
+        YouTubeService();
+
+    protected:
+        void InitializeDefaults();
+    };
 }

@@ -2,82 +2,56 @@
 
 namespace wot_stream::extension::obs_management::sources {
 
-    // public
-
-    Source::Source(SourceType type) {
-        source = MakeBy(type);
-    }
-
-    Source::~Source() {
-        obs_source_release(source);
-        obs_data_release(settings);
-    }
-
-    SourceType Source::GetType() { return type; }
-    std::string Source::GetName() { return name; }
+    Source::Source() {}
+    Source::~Source() { obs_source_release(source); }
 
     Source::operator obs_source*() const { return source; }
 
-    // private
-
-    /// PORNOGRAPHY
-    obs_source* Source::MakeBy(SourceType type) {
-
-        this->type = type;
-
-        switch (type) {
-        case SourceType::GameCapture:
-            this->name = "World of Tanks";
-
-            return obs_source_create(
-                "game_capture", name.c_str(), settings = GetGameCapturePreset(), nullptr);
-
-        case SourceType::SystemAudio:
-            this->name = "Desktop Audio";
-
-            return obs_source_create(
-                "wasapi_output_capture", name.c_str(), settings = GetSystemAudioPreset(), nullptr);
-
-        default:
-            throw std::invalid_argument("SourceType::Unknown is not allowed");
-        }
+    void Source::UpdateSettings(const Settings &settings) {
+        this->settings = settings;
+        obs_source_update(source, this->settings);
     }
 
 
-    /// HARDCODE
-    obs_data* Source::GetGameCapturePreset() {
+    GameCaptureSource::GameCaptureSource() {
+        InitializeDefaults();
+        source = obs_source_create("game_capture", "World of Tanks", settings, nullptr);
+    }
+    GameCaptureSource::~GameCaptureSource() {}
 
-        auto settings = obs_data_create();
-        obs_data_set_string(settings, "capture_mode", "window");
-        obs_data_set_string(settings, "window", "WoT Client:App:WorldOfTanks.exe");
-        obs_data_set_int(settings, "priority", 2); // WINDOW_PRIORITY_EXE
-        obs_data_set_bool(settings, "sli_compatibility", false);
-        obs_data_set_bool(settings, "capture_cursor", true);
-        obs_data_set_bool(settings, "allow_transparency", false);
-        obs_data_set_bool(settings, "force_scaling", false);
-        obs_data_set_bool(settings, "limit_framerate", false);
-        obs_data_set_bool(settings, "capture_overlays", false);
-        obs_data_set_bool(settings, "anti_cheat_hook", true);
-        obs_data_set_string(settings, "scale_res", "1920x1080");
-
-        obs_data_set_default_double(settings, "volume", 1.0);
-        obs_data_set_default_int(settings, "mixers", 0xF);
-        obs_data_set_default_int(settings, "flags", 0);
-        obs_data_set_default_bool(settings, "enabled", true);
-
-        return settings;
+    void GameCaptureSource::InitializeDefaults() {
+        settings
+            .SetString("capture_mode", "window")
+            .SetString("window", "WoT Client:App:WorldOfTanks.exe")
+            .SetInt("priority", 2)
+            .SetBool("sli_compatibility", false)
+            .SetBool("capture_cursor", true)
+            .SetBool("allow_transparency", false)
+            .SetBool("force_scaling", false)
+            .SetBool("limit_framerate", false)
+            .SetBool("capture_overlays", false)
+            .SetBool("anti_cheat_hook", true)
+            .SetString("scale_res", "1920x1080");
+        settings
+            .SetDefaultDouble("volume", 1.0)
+            .SetDefaultInt("mixers", 0xF)
+            .SetDefaultInt("flags", 0)
+            .SetDefaultBool("enabled", true);
     }
 
-    /// HARDCODE
-    obs_data* Source::GetSystemAudioPreset() {
 
-        auto settings = obs_data_create();
-        obs_data_set_default_double(settings, "volume", 1.0);
-        obs_data_set_default_int(settings, "mixers", 0xFF);
-        obs_data_set_default_int(settings, "flags", 0);
-        obs_data_set_default_bool(settings, "enabled", true);
-        obs_data_set_default_bool(settings, "muted", false);
+    SystemAudioSource::SystemAudioSource() {
+        InitializeDefaults();
+        source = obs_source_create("wasapi_output_capture", "Desktop Audio", settings, nullptr);
+    }
+    SystemAudioSource::~SystemAudioSource() {}
 
-        return settings;
+    void SystemAudioSource::InitializeDefaults() {
+        settings
+            .SetDefaultDouble("volume", 1.0)
+            .SetDefaultInt("mixers", 0xFF)
+            .SetDefaultInt("flags", 0)
+            .SetDefaultBool("enabled", true)
+            .SetDefaultBool("muted", false);
     }
 }

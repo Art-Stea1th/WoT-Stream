@@ -5,6 +5,8 @@
 namespace wot_stream::extension::obs_management::sources {
 
     class WoTScene {
+    private:
+
     public:
         WoTScene();
         ~WoTScene();
@@ -15,6 +17,6 @@ namespace wot_stream::extension::obs_management::sources {
         obs_scene* scene;
 
         std::unique_ptr<Source> game_capture_source;
-        std::unique_ptr<Source> system_audio_source;
+        std::unique_ptr<Source> system_audio_source;    
     };
 }

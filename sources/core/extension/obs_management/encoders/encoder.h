@@ -4,31 +4,40 @@
     x264, NVENC, Quicksync are examples of encoder implementations.
 */
 #pragma once
-#include "../../shared.h"
+#include "../settings.h"
 
 namespace wot_stream::extension::obs_management::encoders {
 
     class Encoder {
     public:
         virtual ~Encoder();
+        operator obs_encoder* () const;
+
+        obs_data* GetSettings() const;
+        void UpdateSettings(const Settings &settings);
 
     protected:
         Encoder();
 
-        obs_data* settings;
+        Settings settings;
         obs_encoder* encoder;
     };
 
-    class SimpleStreamAudio : Encoder {
-    public:
-        SimpleStreamAudio();
-        ~SimpleStreamAudio();
-    };    
-
-    class SimpleStreamVideo : Encoder {
+    class SimpleStreamVideo : public Encoder {
     public:
         SimpleStreamVideo();
         ~SimpleStreamVideo();
+
+    protected:
+        void InitializeDefaults();
     };
 
+    class SimpleStreamAudio : public Encoder {
+    public:
+        SimpleStreamAudio();
+        ~SimpleStreamAudio();
+
+    protected:
+        void InitializeDefaults();
+    };
 }

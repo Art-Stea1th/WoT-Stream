@@ -15,8 +15,6 @@ set(WS_INCLUDE_DIRS
 
     "${WS_ROOT}"
     "${WS_ROOT}/helpers"
-	"${WS_ROOT}/utilities"
-	"${WS_ROOT}/obs_management"
 
 	"${WS_ROOT}/obs_management/sources"
 	"${WS_ROOT}/obs_management/services"
@@ -43,4 +41,4 @@ target_link_libraries(wot_stream "${LIB_OBS}")
 
 
 # hardcode
-set_property(TARGET wot_stream PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${OBS_SLN}/rundir/Debug/bin/32bit") # ?
+set_property(TARGET wot_stream PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${OBS_SLN}/rundir/Debug/bin/32bit") #?

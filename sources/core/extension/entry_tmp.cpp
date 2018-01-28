@@ -1,9 +1,15 @@
 #include "obs_management/modules_loader.h"
 #include "obs_management/sources/wot_scene.h"
+#include "obs_management/encoders/encoder.h"
+#include "obs_management/services/service.h"
+#include "obs_management/outputs/output.h"
 
 using namespace std;
 using namespace wot_stream::extension::obs_management;
 using namespace wot_stream::extension::obs_management::sources;
+using namespace wot_stream::extension::obs_management::encoders;
+using namespace wot_stream::extension::obs_management::services;
+using namespace wot_stream::extension::obs_management::outputs;
 
 void Check();
 void Startup();
@@ -18,12 +24,6 @@ int main() {
 
 void Check() {
 
-    // --------------------------------------------------------------------------------------------
-    // TODO: 'll wrap in the object oriented model after clarifying all of the requirements
-    // --------------------------------------------------------------------------------------------
-
-    // + startup, init audio, video, load modules, create scene, sources --------------------------
-
     Startup();
     ResetAudio();
     ResetVideo();
@@ -31,109 +31,25 @@ void Check() {
     ModulesLoader modules_loader {};
     modules_loader.LoadAuthorized();
 
-    cout << string(64, '=') << endl;
-
     WoTScene scene {};
 
-    auto h264_settings = obs_data_create();
-    auto aac_settings = obs_data_create();
+    SimpleStreamVideo video_encoder {};
+    SimpleStreamAudio audio_encoder {};
 
-    obs_data_set_string(h264_settings, "rate_control", "CBR");
-    obs_data_set_int(h264_settings, "bitrate", 2500);
+    YouTubeService service {};
+    service.UpdateToken("17a7-4xcp-wqhe-7d7d");
+    service.ApplyEncoders(video_encoder, audio_encoder);
 
-    obs_data_set_string(aac_settings, "rate_control", "CBR");
-    obs_data_set_int(aac_settings, "bitrate", 160);
+    StreamOutput output {};
+    output.SetAudioEncoder(audio_encoder);
+    output.SetVideoEncoder(video_encoder);
+    output.SetService(service);    
 
-    auto video_encoder = obs_video_encoder_create("obs_x264", "simple_h264_stream", h264_settings, nullptr);
-    auto audio_encoder = obs_audio_encoder_create("mf_aac", "simple_aac", aac_settings, 0, nullptr);
-
-    // --- set: a/v -------------------------------------------------------------------------------
-
-    auto video = obs_get_video();
-    auto audio = obs_get_audio();
-
-    obs_encoder_set_video(video_encoder, video);
-    obs_encoder_set_audio(audio_encoder, audio);
-
-    // --- service --------------------------------------------------------------------------------
-
-    auto rtpm_settings = obs_data_create();
-
-    obs_data_set_string(rtpm_settings, "key", "4a72-yvcj-bpyx-bajq"); // <<------------ place youtube token here
-    obs_data_set_string(rtpm_settings, "server", "rtmp://a.rtmp.youtube.com/live2");
-    obs_data_set_string(rtpm_settings, "service", "YouTube / YouTube Gaming");
-
-    auto service = obs_service_create("rtmp_common", "default_service", rtpm_settings, nullptr);
-
-    obs_service_apply_encoder_settings(service, h264_settings, aac_settings);
-
-    auto output_type = obs_service_get_output_type(service);
-
-    // --- stream output --------------------------------------------------------------------------
-
-    auto stream_output_settings = obs_data_create();
-
-    auto reconnect = true;
-    auto retry_delay = 10;
-    auto max_retries = 20;
-    auto use_delay = false;
-    auto delay_sec = 20;
-    auto preserve_delay = true;
-    auto bind_IP = "default";
-    auto enable_new_socket_loop = false;
-    auto enable_low_latency_mode = false;
-
-    if (!reconnect) { max_retries = 0; }
-
-    obs_data_set_string(stream_output_settings, "bind_ip", bind_IP);
-    obs_data_set_bool(stream_output_settings, "new_socket_loop_enabled", enable_new_socket_loop);
-    obs_data_set_bool(stream_output_settings, "low_latency_mode_enabled", enable_low_latency_mode);
-
-    auto stream_output = obs_output_create(output_type, "simple_stream", stream_output_settings, nullptr);
-
-    obs_output_set_video_encoder(stream_output, video_encoder);
-    obs_output_set_audio_encoder(stream_output, audio_encoder, 0);
-    obs_output_set_service(stream_output, service);
-
-    obs_output_set_delay(stream_output, use_delay ? delay_sec : 0, preserve_delay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
-    obs_output_set_reconnect_settings(stream_output, max_retries, retry_delay);
-
-    // --------------------------------------------------------------------------------------------
-
-    // std::this_thread::sleep_for(5s);
-
-    obs_output_start(stream_output);
-
-    cout << string(64, '=') << endl;
-    cout << "stream & capture started" << endl;
-    cout << string(64, '=') << endl;
+    output.Start();
 
     cin.get();
 
-    // --- release memory -------------------------------------------------------------------------
-
-    obs_output_stop(stream_output);
-    obs_output_release(stream_output);
-
-    obs_data_release(stream_output_settings);
-
-    obs_data_release(aac_settings);
-    obs_data_release(h264_settings);
-
-    obs_service_release(service);
-
-    obs_encoder_release(audio_encoder);
-    obs_encoder_release(video_encoder);
-
-    // obs_sceneitem_release(sa_scene_item);
-    // obs_sceneitem_release(gc_scene_item);
-
-    /*system_audio_source.~Source();
-    game_capture_source.~Source();*/
-
-    // obs_scene_release(scene);
-
-    // obs_shutdown();
+    output.Stop();
 }
 
 void Startup() {
