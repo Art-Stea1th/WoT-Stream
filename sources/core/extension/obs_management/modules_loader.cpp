@@ -4,16 +4,12 @@ namespace wot_stream::extension::obs_management {
 
     using string = std::string;
 
-    ModulesLoader::ModulesLoader()
-        : default_bin_path("../../obs-plugins/32bit/"),          // 'll be changed
-        default_data_path("../../data/obs-plugins/%module%/") {  // 'll be changed
+    ModulesLoader::ModulesLoader() : plugins_path("plugins\\") {
 
         authorized_module_names = {
-            "win-wasapi", "win-mf", "win-dshow", "win-capture", //"win-decklink",
+            "win-wasapi", "win-mf", "win-capture",
             "rtmp-services",
-            "obs-x264", "obs-qsv11", "obs-outputs", //"obs-ffmpeg",
-                                                    //"image-source",                                                    
-                                                    //"coreaudio-encoder"
+            "obs-outputs", "obs-x264",
         };
     }
 
@@ -21,11 +17,9 @@ namespace wot_stream::extension::obs_management {
 
     void ModulesLoader::LoadAuthorized() {
 
-        // obs_load_all_modules(); // tmp. for valid inject to game process, del. "frontend-tools.dll" before start
-
         for (auto &module_name : authorized_module_names) {
-            auto bin_path = /*default_bin_path +*/ module_name + ".dll";
-            auto data_path = default_data_path + module_name;
+            auto bin_path = plugins_path + module_name + ".dll";
+            auto data_path = plugins_path + module_name + "\\";
             LoadModule(bin_path, data_path);
         }
         PostLoad();
@@ -51,5 +45,4 @@ namespace wot_stream::extension::obs_management {
         obs_log_loaded_modules();
         obs_post_load_modules();
     }
-
 }

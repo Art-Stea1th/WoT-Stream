@@ -1,12 +1,30 @@
-from ctypes import cdll
+from ctypes import *
 from pathlib import Path
 from os import chdir
 
+class LibrariesInfo(object):
+
+    def __init__(self, root_path, plug_path, libs_extension):
+        self.root_path = root_path
+        self.plug_path = plug_path
+        self.libs_extension = libs_extension
+
+    def get_full_library_name(self, name):
+        return str(Path(self.root_path + name + self.libs_extension).resolve())
+
+class LibrariesLoader(object):    
+
+    def __init__(self, root_path, plug_path, libs_extension):
+        self.info = LibrariesInfo(root_path, plug_path, libs_extension)
+
+    def load_all(self):
+        chdir(str(Path(self.info.root_path).resolve()))
+        self.lib = WinDLL(self.info.get_full_library_name('wot_stream'), RTLD_GLOBAL)
+
 class WoTStream(object):
 
-    def __init__(self, dll_path_string):
-        #loader = WinDLL('Loader', RTLD_GLOBAL, None, False, False)
-        self.lib = cdll.LoadLibrary(dll_path_string) # OSError: [WinError 126] The specified module could not be found #, RTLD_GLOBAL
+    def __init__(self, lib):
+        self.lib = lib
 
     def initialize(self):
         self.lib.initialize()
@@ -20,37 +38,23 @@ class WoTStream(object):
     def shutdown(self):
         self.lib.shutdown()
 
-
 def main():
 
-    dll_path = '../../build/Debug/bin/32bit/'
-    dll_name = 'wot_stream.dll'
+    loader = LibrariesLoader('../../build/Debug/', 'plugins/', '.dll')
+    loader.load_all()
 
-    full_dll_path = Path(dll_path).resolve()
-    full_dll_name = Path(dll_path + dll_name).resolve()
+    mod_instance = WoTStream(loader.lib)
+    mod_instance.initialize()
+    input()
 
+    mod_instance.start_stream()
+    input()
 
-    if full_dll_name.exists():
+    mod_instance.stop_stream()
+    input()
 
-        chdir(str(full_dll_path))
-
-        string_dll_name = str(full_dll_name)
-
-
-        wot_stream = WoTStream(string_dll_name)
-        wot_stream.initialize()
-
-        input()
-        
-        wot_stream.start_stream()
-
-        input()
-        
-        wot_stream.stop_stream()
-        wot_stream.shutdown()
-    else:
-        raise FileNotFoundError(dll_path)
-
+    mod_instance.shutdown()
+    input()
 
 if __name__ == "__main__":
     main()
