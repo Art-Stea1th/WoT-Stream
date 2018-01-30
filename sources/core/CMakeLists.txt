@@ -30,7 +30,7 @@ file(GLOB_RECURSE SOURCES
 	"${WS_ROOT}/*.cpp"
 )
 
-add_executable(wot_stream "${SOURCES}")
+add_library(wot_stream SHARED "${SOURCES}")
 
 set_property(TARGET wot_stream PROPERTY LINKER_LANGUAGE CXX)
 set_property(TARGET wot_stream PROPERTY CXX_STANDARD 17)
@@ -38,7 +38,6 @@ set_property(TARGET wot_stream PROPERTY CXX_STANDARD 17)
 # hardcode
 find_library(LIB_OBS NAMES "obs" PATHS "${OBS_SLN}/libobs/Debug/")
 target_link_libraries(wot_stream "${LIB_OBS}")
-
 
 # hardcode
 set_property(TARGET wot_stream PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${OBS_SLN}/rundir/Debug/bin/32bit") #?

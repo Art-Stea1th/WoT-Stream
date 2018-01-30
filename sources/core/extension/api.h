@@ -1,12 +1,12 @@
-/*
-    api
-*/
-
 #pragma once
+#define EXPORT __declspec(dllexport)
 
-void Initialize();
+extern "C" {
 
-void StartStream();
-void StopStream();
+    EXPORT void initialize();
 
-void Shutdown();
+    EXPORT void start_stream();
+    EXPORT void stop_stream();
+
+    EXPORT void shutdown();
+}
