@@ -21,13 +21,13 @@ namespace wot_stream::extension::obs_management {
 
     void ModulesLoader::LoadAuthorized() {
 
-        obs_load_all_modules(); // tmp. for valid inject to game process, del. "frontend-tools.dll" before start
+        // obs_load_all_modules(); // tmp. for valid inject to game process, del. "frontend-tools.dll" before start
 
-        /*for (auto &module_name : authorized_module_names) {
-            auto bin_path = default_bin_path + module_name + ".dll";
+        for (auto &module_name : authorized_module_names) {
+            auto bin_path = /*default_bin_path +*/ module_name + ".dll";
             auto data_path = default_data_path + module_name;
             LoadModule(bin_path, data_path);
-        }*/
+        }
         PostLoad();
     }
 

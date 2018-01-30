@@ -1,43 +1,51 @@
 from ctypes import cdll
 from pathlib import Path
+from os import chdir
 
-class WoTStream:
+class WoTStream(object):
 
     def __init__(self, dll_path_string):
-        lib = cdll.LoadLibrary(dll_path_string) # OSError: [WinError 126] The specified module could not be found
+        #loader = WinDLL('Loader', RTLD_GLOBAL, None, False, False)
+        self.lib = cdll.LoadLibrary(dll_path_string) # OSError: [WinError 126] The specified module could not be found #, RTLD_GLOBAL
 
-    def initialize():
-        lib.initialize()
+    def initialize(self):
+        self.lib.initialize()
 
-    def start_stream():
-        lib.start_stream()
+    def start_stream(self):
+        self.lib.start_stream()
 
-    def stop_stream():
-        lib.stop_stream()
+    def stop_stream(self):
+        self.lib.stop_stream()
 
-    def shutdown():
-        lib.shutdown()
+    def shutdown(self):
+        self.lib.shutdown()
 
 
 def main():
 
-    dll_path = Path('../../build/Debug/bin/32bit/wot_stream.dll').resolve()
+    dll_path = '../../build/Debug/bin/32bit/'
+    dll_name = 'wot_stream.dll'
 
-    if dll_path.exists():
+    full_dll_path = Path(dll_path).resolve()
+    full_dll_name = Path(dll_path + dll_name).resolve()
 
-        dll_path_resolved_string = str(dll_path)
 
-        print(dll_path_resolved_string)
+    if full_dll_name.exists():
 
-        wot_stream = WoTStream(dll_path_resolved_string)
+        chdir(str(full_dll_path))
+
+        string_dll_name = str(full_dll_name)
+
+
+        wot_stream = WoTStream(string_dll_name)
         wot_stream.initialize()
 
         input()
-
+        
         wot_stream.start_stream()
 
         input()
-
+        
         wot_stream.stop_stream()
         wot_stream.shutdown()
     else:
