@@ -4,7 +4,7 @@ namespace wot_stream::extension::obs_management {
 
     using string = std::string;
 
-    ModulesLoader::ModulesLoader() : plugins_path("plugins\\") {
+    ModulesLoader::ModulesLoader() {
 
         authorized_module_names = {
             "win-wasapi", "win-mf", "win-capture",
@@ -18,9 +18,7 @@ namespace wot_stream::extension::obs_management {
     void ModulesLoader::LoadAuthorized() {
 
         for (auto &module_name : authorized_module_names) {
-            auto bin_path = plugins_path + module_name + ".dll";
-            auto data_path = plugins_path + module_name + "\\";
-            LoadModule(bin_path, data_path);
+            LoadModule(module_name + ".dll", "./");
         }
         PostLoad();
     }
