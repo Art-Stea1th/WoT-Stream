@@ -1,52 +1,68 @@
-import sys
-import os
+from gui.app_loader.loader import g_appLoader
+from gui.Scaleform import SCALEFORM_SWF_PATH
+from gui.Scaleform.daapi import LobbySubView
+from gui.Scaleform.daapi.view.meta.WindowViewMeta import *
+from gui.Scaleform.Flash import Flash
+from gui.Scaleform.framework import g_entitiesFactories, ViewSettings, ViewTypes, ScopeTemplates
+from gui.Scaleform.framework.entities.View import View
+from gui.Scaleform.framework.managers.loaders import ViewLoadParams
+from gui.shared import events
+from gui.shared.utils.key_mapping import getBigworldNameFromKey
+from gui import InputHandler
 
-from ctypes import *
+LobbySubView.__background_alpha__ = 0
 
-current_path = os.path.dirname(os.path.abspath(__file__))
-dbg_path = os.path.abspath(current_path + '/../../build/Debug/')
+print('x' * 100)
+import socket
+print 'socket imported'
+print('x' * 100)
 
-print dbg_path
-#ctypes_path = os.path.join(current_path, 'ctypes')
+class WoTStreamView(LobbySubView, WindowViewMeta):
 
-class WoTStreamController(object):
+    def __init__(self):
+        View.__init__(self)
 
-    def __init__(self, lib_full_name):
-        self.lib = WinDLL(lib_full_name, RTLD_GLOBAL)
+    def _populate(self):
+        View._populate(self)
 
-    def initialize(self):
-        self.lib.initialize()
+    def _dispose(self):
+        View._dispose(self)
 
-    def start_stream(self):
-        self.lib.start_stream()
+    def onTryClosing(self):
+        return True
 
-    def stop_stream(self):
-        self.lib.stop_stream()
+    def onWindowClose(self):
+        self.destroy()
 
-    def shutdown(self):
-        self.lib.shutdown()
+    def startStream(self, token):
+        if token:
+            print(token)
 
-def main():
+_window_alias = 'WotStreamView'
+_url = 'wot_stream.swf'
+_type = ViewTypes.WINDOW
+_event = None
+_scope = ScopeTemplates.GLOBAL_SCOPE
 
-    lib_path = '../../build/Debug/'
-    lib_name = 'wot_stream.dll'
+_settings = ViewSettings(_window_alias, WoTStreamView, _url, _type, _event, _scope)
+g_entitiesFactories.addSettings(_settings)
 
-    lib_full_path = os.path.abspath(lib_path)
-    lib_full_name = os.path.abspath(lib_path + '/' + lib_name)
+old_init = Flash.__init__
 
-    os.chdir(str(lib_full_path))
+def on_key_event(event):
+    key = getBigworldNameFromKey(event.key)
+    if key == 'KEY_F10':
+        g_appLoader.getApp().loadView(ViewLoadParams(_window_alias, _window_alias))
+    return None
 
-    controller = WoTStreamController(lib_full_name)
-    controller.initialize()
-    raw_input()
 
-    controller.start_stream()
-    raw_input()
+def new_init(self, swf, className='Flash', args=None, path=SCALEFORM_SWF_PATH):
+    old_init(self, swf, className, args, path)
+    if swf == 'lobby.swf':
+        self.addListener(events.AppLifeCycleEvent.INITIALIZED, lambda e: subscribe(self, e))
+        
 
-    controller.stop_stream()
-    raw_input()
+def subscribe(self, event):
+    InputHandler.g_instance.onKeyDown += on_key_event
 
-    controller.shutdown()
-
-if __name__ == "__main__":
-    main()
+Flash.__init__ = new_init

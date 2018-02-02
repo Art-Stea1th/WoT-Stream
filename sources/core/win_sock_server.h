@@ -14,7 +14,7 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "48684"
 
-namespace wot_stream::core {
+namespace wot_stream::core { // tmp. single message impl.
 
 
     class WinSockServer {
@@ -27,13 +27,29 @@ namespace wot_stream::core {
 
         void ResolveAddressInfo();
 
+        void CreateListenSocket();
+        void BindListeningSocket();
+        void StartListen();
+
+        void AcceptClientSocket();
+
+        void StartReceive();
+
+        void Shutdown();
+
     private:
 
         void PrintError(const std::string &operation_name, int error_code);
         void PrintSuccess(const std::string &operation_name);
 
-        addrinfo addr_info_hints;
-        addrinfo* addr_info_result;
+        addrinfo ai_hints;
+        addrinfo* ai_result;
+
+        SOCKET listen_socket = INVALID_SOCKET;
+        SOCKET client_socket = INVALID_SOCKET;
+
+        char recvbuf[DEFAULT_BUFLEN];
+        int recvbuflen = DEFAULT_BUFLEN;
 
     };
 }
