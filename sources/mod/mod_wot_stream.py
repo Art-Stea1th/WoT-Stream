@@ -12,10 +12,7 @@ from gui import InputHandler
 
 LobbySubView.__background_alpha__ = 0
 
-print('x' * 100)
-import socket
-print 'socket imported'
-print('x' * 100)
+import wot_stream_client
 
 class WoTStreamView(LobbySubView, WindowViewMeta):
 
