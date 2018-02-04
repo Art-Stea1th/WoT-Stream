@@ -20,6 +20,8 @@ set(WS_INCLUDE_DIRS
 	"${WS_ROOT}/obs_management/services"
 	"${WS_ROOT}/obs_management/encoders"
 	"${WS_ROOT}/obs_management/outputs"
+
+	"${WS_ROOT}/sockets"
 )
 
 include_directories(WS_INCLUDE_DIRS)

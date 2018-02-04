@@ -13,6 +13,7 @@ namespace wot_stream::core {
         Extension();
         ~Extension();
 
+        void Initialize();
         void UpdateStreamToken(const std::string &token);
 
         void StartStream();
@@ -20,11 +21,12 @@ namespace wot_stream::core {
 
         void UpdateScreen(int width, int height, int fps);
 
+        bool GetStreamStarted();
+
     private:
         void ResetVideo(int width = 1920, int height = 1080, int fps = 60);
         void ResetAudio(speaker_layout layout = SPEAKERS_STEREO, int sps = 44100);
 
-        void Initialize();
         void ClearAll();
 
         std::unique_ptr<obs_management::ModulesLoader> modules_loader;
@@ -34,5 +36,7 @@ namespace wot_stream::core {
         std::unique_ptr<obs_management::encoders::Encoder> audio_encoder;
         std::unique_ptr<obs_management::services::Service> service;
         std::unique_ptr<obs_management::outputs::Output> output;
+
+        bool initialized = false;
     };
 }

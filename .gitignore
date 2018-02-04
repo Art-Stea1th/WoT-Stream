@@ -2,3 +2,8 @@
 
 build/Debug/
 build/Release/
+
+deps/mod/includes_py/client/*
+deps/mod/includes_py/common/*
+
+projects/

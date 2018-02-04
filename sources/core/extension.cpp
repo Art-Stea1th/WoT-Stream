@@ -3,6 +3,7 @@
 namespace wot_stream::core {
 
     using namespace obs_management;
+    using namespace std;
 
     using WotScene = sources::WoTScene;
     using VideoEncoder = encoders::SimpleStreamVideo;
@@ -10,17 +11,17 @@ namespace wot_stream::core {
     using YouTubeService = services::YouTubeService;
     using StreamOutput = outputs::StreamOutput;
 
-    Extension::Extension() {        
+    Extension::Extension() {
         if (!obs_startup("en-US", nullptr, nullptr)) {
             throw "Extension startup failed";
         }
         ResetVideo();
         ResetAudio();
-        Initialize();
+        this_thread::sleep_for(5s);
     }
 
     Extension::~Extension() {
-        StopStream();
+        // StopStream();
         ClearAll();
         obs_shutdown();
     }
@@ -65,6 +66,10 @@ namespace wot_stream::core {
 
     void Extension::Initialize() {
 
+        if (initialized) {
+            return;
+        }
+
         modules_loader = std::make_unique<ModulesLoader>();
         modules_loader->LoadAuthorized();
 
@@ -80,6 +85,9 @@ namespace wot_stream::core {
         output->SetVideoEncoder(*video_encoder);
         output->SetAudioEncoder(*audio_encoder);
         output->SetService(*service);
+
+        this_thread::sleep_for(3s);
+        initialized = true;
     }
 
     void Extension::ClearAll() { // important
@@ -95,12 +103,30 @@ namespace wot_stream::core {
         modules_loader = nullptr;
     }
 
-    void Extension::StartStream() { output->Start(); }
-    void Extension::StopStream() { output->Stop(); }
+    void Extension::StartStream() {
+        if (!initialized) {
+            Initialize();
+        }
+        output->Start();
+        this_thread::sleep_for(2s);
+    }
+    void Extension::StopStream() {
+        if (output != nullptr) {
+            output->Stop();
+            this_thread::sleep_for(2s);
+        }
+    }
 
     void Extension::UpdateStreamToken(const std::string &token) {
+        if (!initialized) {
+            Initialize();
+        }
         service->UpdateToken(token);
     }
 
-    void Extension::UpdateScreen(int width, int height, int fps) { }
+    void Extension::UpdateScreen(int width, int height, int fps) {}
+
+    bool Extension::GetStreamStarted() {
+        return output != nullptr && output->Started();
+    }
 }
