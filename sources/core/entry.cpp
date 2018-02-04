@@ -4,9 +4,14 @@
 using namespace wot_stream::core;
 using namespace wot_stream::core::sockets;
 
+void ConfigureView();
+VOID WINAPI SetConsoleColors(WORD attributes);
+
 void StartInteraction(std::shared_ptr<Socket> connection);
 
 int main() {
+
+    ConfigureView();
 
     Socket socket {};
     socket.Bind("127.0.0.1", "48684");
@@ -18,6 +23,22 @@ int main() {
         StartInteraction(connection);
     }
     std::cin.get();
+}
+
+void ConfigureView() {
+    SetConsoleTitle("WoT Stream: Remote");
+    SetConsoleColors(BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE);
+}
+
+VOID WINAPI SetConsoleColors(WORD attributes) {
+
+    HANDLE hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    CONSOLE_SCREEN_BUFFER_INFOEX cbi;
+    cbi.cbSize = sizeof(CONSOLE_SCREEN_BUFFER_INFOEX);
+    GetConsoleScreenBufferInfoEx(hOutput, &cbi);
+    cbi.wAttributes = attributes;
+    SetConsoleScreenBufferInfoEx(hOutput, &cbi);
 }
 
 void StartInteraction(std::shared_ptr<Socket> connection) {
