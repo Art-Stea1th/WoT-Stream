@@ -1,36 +1,40 @@
-from gui.app_loader.loader import g_appLoader
+import re
+from socket import socket
+from warnings import warn
+
+from gui import InputHandler
 from gui.Scaleform import SCALEFORM_SWF_PATH
-from gui.Scaleform.daapi import LobbySubView
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import *
 from gui.Scaleform.Flash import Flash
+from gui.Scaleform.daapi import LobbySubView
+from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
 from gui.Scaleform.framework import g_entitiesFactories, ViewSettings, ViewTypes, ScopeTemplates
 from gui.Scaleform.framework.entities.View import View
 from gui.Scaleform.framework.managers.loaders import ViewLoadParams
+from gui.app_loader.loader import g_appLoader
 from gui.shared import events
 from gui.shared.utils.key_mapping import getBigworldNameFromKey
-from gui import InputHandler
 
 LobbySubView.__background_alpha__ = 0
 
-# ---------------------------------------------------------------------------------------------------------------------------
-
-from socket import socket
-from warnings import warn
 
 class ServerState(object):
     def __init__(self):
         self.__ok = 0
         self.__rd = 1
         self.__er = 255
+
     @property
-    def Ok(self):
+    def ok(self):
         return self.__ok
+
     @property
-    def Error(self):
+    def error(self):
         return self.__er
+
     @property
-    def ReadyToReceive(self):
+    def readyToReceive(self):
         return self.__rd
+
 
 class WoTStreamRemote(object):
 
@@ -46,11 +50,11 @@ class WoTStreamRemote(object):
         self.__sc = socket()
         self.__sc.connect((address, port))
 
-    def Initialize(self):
+    def initialize(self):
         self.__send(0)
 
     @property
-    def PingOk(self):
+    def pingOk(self):
         try:
             self.__sendCommand(1)
             return True
@@ -58,7 +62,7 @@ class WoTStreamRemote(object):
             return False
 
     @property
-    def StreamStarted(self):
+    def streamStarted(self):
         response = self.__send(1)
         if response == 0:
             self.__stream_started = False
@@ -66,87 +70,87 @@ class WoTStreamRemote(object):
             self.__stream_started = True
         return self.__stream_started
 
-    def StartStream(self, token):
+    def startStream(self, token):
         self.__send(2, token)
 
-    def StopStream(self):
+    def stopStream(self):
         self.__send(3)
 
-    def Shutdown(self):
+    def shutdown(self):
         self.__send(4)
         self.__sc.close()
 
     def __send(self, command, data=None):
-        response = self.__state.Error
+        response = self.__state.error
         if data:
             response = self.__sendCommand(command)
-            if response == self.__state.ReadyToReceive:
+            if response == self.__state.readyToReceive:
                 response = self.__sendData(data)
-                if response != self.__state.Ok:
+                if response != self.__state.ok:
                     warn('server ready to receive, but data not accepted')
             else:
-                warn('the command contains data but the server didn\'t ready to accept')
+                warn("the command contains data but the server didn't ready to accept")
         else:
             response = self.__sendCommand(command)
         return response
-        
 
     def __sendCommand(self, command):
 
-        if command == None:
+        if command is None:
             raise ValueError('command must be a byte')
 
         cmd = str(int(command))[0]
         self.__sc.send(cmd)
 
         response = self.__decodeResponse(self.__sc.recv(1))
-        if response != self.__state.Ok and response != self.__state.ReadyToReceive:
-            warn('the command execution didn\'t confirmed by the server')
+        if response != self.__state.ok and response != self.__state.readyToReceive:
+            warn("the command execution didn't confirmed by the server")
 
         return response
-        
 
     def __sendData(self, data):
 
-        if data == None:
-            raise ValueError('data string can\'t be \'None\' or empty')
+        if data is None:
+            raise ValueError("data string can't be 'None' or empty")
 
         self.__sc.send(data)
         response = self.__decodeResponse(self.__sc.recv(1))
-        if response != self.__state.Ok:
-            warn('the data receiving didn\'t confirmed by the server')
+        if response != self.__state.ok:
+            warn("the data receiving didn't confirmed by the server")
 
         return response
 
     def __decodeResponse(self, value):
         try:
             response = int(value)
-            if response == 0 \
-            or response == 1 \
-            or response == 255:
+            if response in (0, 1, 255):
                 return response
-            raise
+            # !!!!!!!!!!!!!
+            raise Exception
+            # !!!!!!!!!!!!!
         except:
             return 255
 
-# ---------------------------------------------------------------------------------------------------------------------------
 
-import re
+# --------------------------------------------------------------------------------------------------------------------
+
 
 class WotStreamViewState(object):
 
     def __init__(self):
         self.WSR = None
-        self.Pattern = re.compile('^[a-z0-9]{4,4}-[a-z0-9]{4,4}-[a-z0-9]{4,4}-[a-z0-9]{4,4}', re.IGNORECASE)
+        self.pattern = re.compile(r'^[a-z0-9]{4,4}-[a-z0-9]{4,4}-[a-z0-9]{4,4}-[a-z0-9]{4,4}', re.IGNORECASE)
 
-        self.Help = 'Run the companion app and click \'Connect\''
-        self.InputEnabled = False
-        self.Token = ''
-        self.BtnEnabled = True
-        self.BtnLabel = 'Connect'
-        self.StatusText = 'unknown'
+        self.help = 'Run the companion app and click \'Connect\''
+        self.inputEnabled = False
+        self.token = ''
+        self.btnEnabled = True
+        self.btnLabel = 'Connect'
+        self.statusText = 'unknown'
+
 
 g_ws_ViewState = WotStreamViewState()
+
 
 class WoTStreamView(LobbySubView, WindowViewMeta):
 
@@ -170,7 +174,7 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
         View._dispose(self)
 
     def __loadState(self):
-        self.__setHelpText(self.__state.Help)        
+        self.__setHelpText(self.__state.Help)
         self.__setInputEnabled(self.__state.InputEnabled)
         self.__setInputText(self.__state.Token)
         self.__setBtnEnabled(self.__state.BtnEnabled)
@@ -179,7 +183,7 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
         print 'WSR: View --- state loaded'
 
     # -- from view
-    def CheckInput(self, input):
+    def checkInput(self, input):
 
         input_valid = False
 
@@ -192,11 +196,11 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
         self.__onInputValidate(input_valid)
 
     # -- from view
-    def StartStopStream(self, token):
+    def startStopStream(self, token):
         if self.__wsrReady():
 
             if self.__after_init:
-                self.CheckInput(token)
+                self.checkInput(token)
                 return
 
             if self.__streamStarted():
@@ -207,11 +211,11 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
             pass
 
     def __startStream(self, token):
-        self.__state.WSR.StartStream(token)
+        self.__state.WSR.startStream(token)
         self.__onStreamStarted()
 
     def __stopStream(self):
-        self.__state.WSR.StopStream()
+        self.__state.WSR.stopStream()
         self.__onStreamStopped()
 
     # --
@@ -219,9 +223,9 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
     def __wsrReady(self):
         ready = False
         try:
-            if not self.__state.WSR or not self.__state.WSR.PingOk:
+            if not self.__state.WSR or not self.__state.WSR.pingOk:
                 self.__state.WSR = WoTStreamRemote('127.0.0.1', 48684)
-                self.__state.WSR.Initialize()
+                self.__state.WSR.initialize()
                 self.__after_init = True
             else:
                 self.__after_init = False
@@ -233,7 +237,7 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
 
     def __streamStarted(self):
         try:
-            if self.__state.WSR and self.__state.WSR.StreamStarted:
+            if self.__state.WSR and self.__state.WSR.streamStarted:
                 return True
             return False
         except:
@@ -241,14 +245,13 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
 
     def __onWSRCheck(self, ready):
         if ready:
-            self.__setHelpText('Enter your token below and click \'Start Stream\'!')
+            self.__setHelpText("Enter your token below and click 'Start Stream'!")
             self.__setStatusText('wot stream remote ready')
         else:
-            self.__setHelpText('Run the companion app and click \'Connect\'')
+            self.__setHelpText("Run the companion app and click 'Connect'")
             self.__setBtnLabel('Connect')
             self.__setStatusText('wot stream remote unawailable, try again')
         self.__setInputEnabled(ready)
-
 
     def __onInputValidate(self, valid):
         if valid:
@@ -312,17 +315,21 @@ g_entitiesFactories.addSettings(_settings)
 
 old_init = Flash.__init__
 
+
 def on_key_event(event):
     key = getBigworldNameFromKey(event.key)
     if key == 'KEY_F10':
         g_appLoader.getApp().loadView(ViewLoadParams(_window_alias, _window_alias))
+
 
 def new_init(self, swf, className='Flash', args=None, path=SCALEFORM_SWF_PATH):
     old_init(self, swf, className, args, path)
     if swf == 'lobby.swf':
         self.addListener(events.AppLifeCycleEvent.INITIALIZED, lambda e: subscribe(self, e))
 
+
 def subscribe(self, event):
     InputHandler.g_instance.onKeyDown += on_key_event
+
 
 Flash.__init__ = new_init
