@@ -1,6 +1,8 @@
 import re
-from socket import socket
+import subprocess
+import _winreg as winreg
 from warnings import warn
+from socket import socket
 
 from gui import InputHandler
 from gui.Scaleform import SCALEFORM_SWF_PATH
@@ -16,131 +18,126 @@ from gui.shared.utils.key_mapping import getBigworldNameFromKey
 
 LobbySubView.__background_alpha__ = 0
 
+class Protocol(object): # I Want Enums
 
-class ServerState(object):
     def __init__(self):
-        self.__ok = 0
-        self.__rd = 1
-        self.__er = 255
+
+        # ordinary responses
+        self.__ok = 'ok'
+        self.__bp = 'bp'
+        self.__er = 'er'
+        self.__uw = 'uw'
+
+        # 'stat' responses
+        self.__ntin = 'ntin'
+        self.__stpd = 'stpd'
+        self.__busy = 'busy'
+        self.__srtd = 'srtd'
+
+    # ordinary responses
 
     @property
     def ok(self):
         return self.__ok
 
     @property
+    def badOperation(self):
+        return self.__rd
+
+    @property
     def error(self):
         return self.__er
 
     @property
-    def readyToReceive(self):
-        return self.__rd
+    def unawailable(self):
+        return self.__uw
 
+    # 'stat' responses
+
+    @property
+    def notInitialized(self):
+        return self.__ntin
+
+    @property
+    def started(self):
+        return self.__srtd
+
+    @property
+    def busy(self):
+        return self.__busy
+
+    @property
+    def stopped(self):
+        return self.__stpd
+    
 
 class WoTStreamRemote(object):
 
     def __init__(self, address, port):
-
-        # inline protocol
-        self.__state = ServerState()
-
-        # other fields
+        self.__proto = Protocol()
         self.__address = address
         self.__port = port
-        self.__stream_started = False
         self.__sc = socket()
-        self.__sc.connect((address, port))
+
+    @property
+    def proto(self):
+        return self.__proto
+
+    def connect(self):
+        try:
+            self.__sc.connect((self.__address, self.__port))
+            return self.__proto.ok
+        except :
+            return self.__proto.unawailable
+
+    def getState(self):
+        return self.__safeRemoteExec('stat', 4)
 
     def initialize(self):
-        self.__send(0)
+        return self.__safeRemoteExec('init')
 
-    @property
-    def pingOk(self):
-        try:
-            self.__sendCommand(1)
-            return True
-        except:
-            return False
+    def updateToken(self, token):
+        return self.__safeRemoteExec('updt: ' + token)
 
-    @property
-    def streamStarted(self):
-        response = self.__send(1)
-        if response == 0:
-            self.__stream_started = False
-        else:
-            self.__stream_started = True
-        return self.__stream_started
-
-    def startStream(self, token):
-        self.__send(2, token)
+    def startStream(self):
+        return self.__safeRemoteExec('srts')
 
     def stopStream(self):
-        self.__send(3)
+        return self.__safeRemoteExec('stps')    
 
-    def shutdown(self):
-        self.__send(4)
-        self.__sc.close()
-
-    def __send(self, command, data=None):
-        response = self.__state.error
-        if data:
-            response = self.__sendCommand(command)
-            if response == self.__state.readyToReceive:
-                response = self.__sendData(data)
-                if response != self.__state.ok:
-                    warn('server ready to receive, but data not accepted')
-            else:
-                warn("the command contains data but the server didn't ready to accept")
-        else:
-            response = self.__sendCommand(command)
-        return response
-
-    def __sendCommand(self, command):
-
-        if command is None:
-            raise ValueError('command must be a byte')
-
-        cmd = str(int(command))[0]
-        self.__sc.send(cmd)
-
-        response = self.__decodeResponse(self.__sc.recv(1))
-        if response != self.__state.ok and response != self.__state.readyToReceive:
-            warn("the command execution didn't confirmed by the server")
-
-        return response
-
-    def __sendData(self, data):
-
-        if data is None:
-            raise ValueError("data string can't be 'None' or empty")
-
-        self.__sc.send(data)
-        response = self.__decodeResponse(self.__sc.recv(1))
-        if response != self.__state.ok:
-            warn("the data receiving didn't confirmed by the server")
-
-        return response
-
-    def __decodeResponse(self, value):
+    def __safeRemoteExec(self, command, ch_count=2):
         try:
-            if response in ('ok', 'bp', 255):
-                return response
-            # !!!!!!!!!!!!!
-            raise Exception
-            # !!!!!!!!!!!!!
+            return self.__send(command, ch_count)
         except:
-            return 255
+            return self.__proto.unawailable
 
+    def __send(self, command, ch_count):
+        self.__sc.send(command)
+        return self.__sc.recv(ch_count)
+        
+    # UNUSED: it works, but lock main process
+    def __startWoTStream(self):
+        full_name = self.__get_reg_value(r'Software\WoT Stream', 'InstallPath') + r'\wot_stream.exe'
+        subprocess.call(full_name) # <- lock
 
-# --------------------------------------------------------------------------------------------------------------------
+    # UNUSED: it works
+    def __getRegValue(self, path, name):
+        try:
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, path, 0, _winreg.KEY_READ)
+            value, regtype = winreg.QueryValueEx(registry_key, name)
+            winreg.CloseKey(registry_key)
+            return value
+        except WindowsError:
+            return None
 
 
 class WotStreamViewState(object):
 
     def __init__(self):
-        self.WSR = None
+        self.WSR = WoTStreamRemote('127.0.0.1', 48684)
         self.pattern = re.compile(r'^[a-z0-9]{4,4}-[a-z0-9]{4,4}-[a-z0-9]{4,4}-[a-z0-9]{4,4}', re.IGNORECASE)
 
-        self.help = 'Run the companion app and click \'Connect\''
+        self.help = "Run the companion app and click 'Connect'"
         self.inputEnabled = False
         self.token = ''
         self.btnEnabled = True
@@ -150,14 +147,14 @@ class WotStreamViewState(object):
 
 g_ws_ViewState = WotStreamViewState()
 
-
 class WoTStreamView(LobbySubView, WindowViewMeta):
 
     def __init__(self):
         View.__init__(self)
         global g_ws_ViewState
         self.__state = g_ws_ViewState
-        self.__after_init = True
+        self.WSR = self.__state.WSR
+        self.proto = self.WSR.proto
         print 'WSR: View --- init ok'
 
     def onFocusIn(self, alias):
@@ -173,12 +170,12 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
         View._dispose(self)
 
     def __loadState(self):
-        self.__setHelpText(self.__state.Help)
-        self.__setInputEnabled(self.__state.InputEnabled)
-        self.__setInputText(self.__state.Token)
-        self.__setBtnEnabled(self.__state.BtnEnabled)
-        self.__setBtnLabel(self.__state.BtnLabel)
-        self.__setStatusText(self.__state.StatusText)
+        self.__setHelpText(self.__state.help)
+        self.__setInputEnabled(self.__state.inputEnabled)
+        self.__setInputText(self.__state.token)
+        self.__setBtnEnabled(self.__state.btnEnabled)
+        self.__setBtnLabel(self.__state.btnLabel)
+        self.__setStatusText(self.__state.statusText)
         print 'WSR: View --- state loaded'
 
     # -- from view
@@ -196,61 +193,106 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
 
     # -- from view
     def startStopStream(self, token):
-        if self.__wsrReady():
 
-            if self.__after_init:
-                self.checkInput(token)
+        state = self.WSR.getState()
+
+        print state
+
+        if state == self.proto.unawailable or state == self.proto.notInitialized:
+            self.__connect()
+
+        elif state == self.proto.stopped:
+            valid_input = self.checkInput(self.__state.token)
+            if not valid_input:
                 return
+            self.__startStream(self.__state.token)
 
-            if self.__streamStarted():
-                self.__stopStream()
-            else:
-                self.__startStream(token)
+        #elif state == self.proto.busy:
+        #    self.__onBusy()
+
+        elif state == self.proto.started:
+            self.__onStreamStop(self.WSR.stopStream())
         else:
-            pass
+            return
+
+
+
+    def __connect(self):
+        self.WSR.connect()
+        self.__onConnect(self.WSR.initialize())
 
     def __startStream(self, token):
-        self.__state.WSR.startStream(token)
-        self.__onStreamStarted()
+        self.WSR.updateToken(token)
+        self.__onStreamStart(self.WSR.startStream())
 
     def __stopStream(self):
-        self.__state.WSR.stopStream()
-        self.__onStreamStopped()
+        self.__onStreamStop(self.WSR.stopStream())
 
-    # --
 
-    def __wsrReady(self):
-        ready = False
-        try:
-            if not self.__state.WSR or not self.__state.WSR.pingOk:
-                self.__state.WSR = WoTStreamRemote('127.0.0.1', 48684)
-                self.__state.WSR.initialize()
-                self.__after_init = True
-            else:
-                self.__after_init = False
-            ready = True
-        except:
-            ready = False
-        self.__onWSRCheck(ready)
-        return ready
 
-    def __streamStarted(self):
-        try:
-            if self.__state.WSR and self.__state.WSR.streamStarted:
-                return True
-            return False
-        except:
-            return False
-
-    def __onWSRCheck(self, ready):
-        if ready:
+    def __onConnect(self, result):
+        if result == self.proto.ok:
             self.__setHelpText("Enter your token below and click 'Start Stream'!")
-            self.__setStatusText('wot stream remote ready')
+            self.__setInputEnabled(True)
+            self.__setBtnEnabled(False)
+            self.__setBtnLabel('Start Stream')
+            self.__setStatusText('initialization completed successfully')
+            print 'WSR: initialization completed successfully'
         else:
             self.__setHelpText("Run the companion app and click 'Connect'")
-            self.__setBtnLabel('Connect')
-            self.__setStatusText('wot stream remote unawailable, try again')
-        self.__setInputEnabled(ready)
+            self.__setInputEnabled(False)
+            self.__setBtnEnabled(True)
+            self.__setBtnLabel('Try Again')
+            self.__setStatusText('initialization failed, something went wrong')
+            print 'WSR: initialization failed, something went wrong'
+
+    def __onStreamStart(self, result):
+        if result == self.proto.ok:
+            self.__setHelpText("Stream started! You can close this window")
+            self.__setInputEnabled(False)
+            self.__setBtnEnabled(True)
+            self.__setBtnLabel('Stop Stream')
+            self.__setStatusText('stream started')
+            print 'WSR: stream started'
+        elif result == self.proto.error: #invalid token
+            self.__setHelpText("Could not start the stream")
+            self.__setInputEnabled(True)
+            self.__setBtnEnabled(True)
+            self.__setBtnLabel('Try Again')
+            self.__setStatusText('Invalid stream token or rtmp-server is not available')
+            print 'WSR: start stream fail, bad token'
+        else:
+            self.__setHelpText("Could not start the stream")
+            self.__setInputEnabled(True)
+            self.__setBtnEnabled(True)
+            self.__setBtnLabel('Try Again')
+            self.__setStatusText('wot stream not ready')
+            print 'WSR: start stream fail, wot stream not ready'
+
+    def __onBusy(self):
+        self.__setHelpText("Operation failed")
+        self.__setInputEnabled(True)
+        self.__setBtnEnabled(True)
+        self.__setBtnLabel('Try Again')
+        self.__setStatusText('wot stream not ready')
+        print 'WSR: busy, operation failed, wot stream not ready'
+
+    def __onStreamStop(self, result):
+        if result == self.proto.ok:
+            self.__setHelpText("Stream stopped!")
+            self.__setInputEnabled(True)
+            self.__setBtnEnabled(True)
+            self.__setBtnLabel('Start Stream')
+            self.__setStatusText('stream stopped')
+            print 'WSR: stream started'
+        else:
+            self.__setHelpText("Could not stop the stream")
+            self.__setInputEnabled(True)
+            self.__setBtnEnabled(True)
+            self.__setBtnLabel('Try Again')
+            self.__setStatusText('wot stream not ready')
+            print 'WSR: stop stream fail, wot stream not ready'
+
 
     def __onInputValidate(self, valid):
         if valid:
@@ -259,18 +301,7 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
         else:
             self.__setStatusText('invalid token')
         self.__setBtnEnabled(valid)
-
-    def __onStreamStarted(self):
-        self.__setInputEnabled(False)
-        self.__setBtnEnabled(True)
-        self.__setBtnLabel('Stop Stream')
-        self.__setStatusText('stream started')
-
-    def __onStreamStopped(self):
-        self.__setInputEnabled(True)
-        self.__setBtnEnabled(True)
-        self.__setBtnLabel('Start Stream')
-        self.__setStatusText('stream stopped')
+    
 
     # -- to view
     def __setHelpText(self, text):
