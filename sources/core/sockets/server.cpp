@@ -30,10 +30,10 @@ namespace wot_stream::core::sockets {
 
             auto request = connection->Receive(4);
 
-            if (request == "ping") {
-                connection->Send(WSOK);
+            if (request == "stat") {
+                connection->Send(WSGetState());
             }
-            else if (request == "strs") {
+            else if (request == "srts") {
                 connection->Send(WSStartStream());
             }
             else if (request == "stps") {
@@ -52,6 +52,17 @@ namespace wot_stream::core::sockets {
                 break;
             }
         }
+    }
+
+    std::string Server::WSGetState() {
+        if (ws) {
+            switch (ws->GetStreamState()) {
+                case OutputState::Stopped: return "stpd";
+                case OutputState::Busy:    return "busy";
+                case OutputState::Started: return "srtd";
+            }
+        }
+        return "ntin";
     }
 
     std::string Server::WSInitialize() {

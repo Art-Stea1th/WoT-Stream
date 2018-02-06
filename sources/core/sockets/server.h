@@ -15,6 +15,7 @@ namespace wot_stream::core::sockets {
     private:
         void StartInteraction();
 
+        std::string WSGetState();
         std::string WSInitialize();
         std::string WSUpdateToken(const std::string &token);
 

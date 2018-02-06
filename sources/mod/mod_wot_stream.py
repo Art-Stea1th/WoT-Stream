@@ -122,8 +122,7 @@ class WoTStreamRemote(object):
 
     def __decodeResponse(self, value):
         try:
-            response = int(value)
-            if response in (0, 1, 255):
+            if response in ('ok', 'bp', 255):
                 return response
             # !!!!!!!!!!!!!
             raise Exception
