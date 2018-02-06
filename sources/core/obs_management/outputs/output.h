@@ -10,41 +10,43 @@
 
 namespace wot_stream::core::obs_management::outputs {
 
+    enum class OutputState {
+        Stopped, Busy, Started
+    };
+
     class Output {
     public:
         ~Output();
+        Output();
 
         void SetVideoEncoder(const encoders::Encoder &encoder);
         void SetAudioEncoder(const encoders::Encoder &encoder);
-
         void SetService(const services::Service &service);
 
-        void UpdateSettings(const Settings &settings);
+        bool UpdateSettings(const Settings &settings);
 
-        void Start();
-        void Stop();
+        bool Start();
+        bool Stop();
 
-        bool Started();
+        OutputState GetState();
+        void SetState(OutputState state); // !! warning: public, church for obs callbacks
 
-    protected:
-        Output();
-
-        enum class State { Stopped, Started };
-
-        Settings settings;
-        obs_output* output;
-
-        State state;
-    };
-
-    class StreamOutput : public Output {
-    public:
-        StreamOutput();
-        ~StreamOutput();
-
-    protected:
+    private:
         void InitializeDefaults();
+
+        void SignalsConnect();
+        void SignalsDisconnect();
+
+        void SignalConnect(const std::string &signal, signal_callback_t callback);
+        void SignalDisconnect(const std::string &signal, signal_callback_t callback);        
+
+        Settings  settings;
+        obs_output* output;
+        
+        std::atomic<OutputState> state = OutputState::Stopped;
     };
 
-    
+    static void OnOutputStarted(void *data, calldata_t *params);
+    static void OnOutputStopped(void *data, calldata_t *params);
+    static void OnOutputBusy(void *data, calldata_t *params);   
 }

@@ -8,28 +8,22 @@
 
 namespace wot_stream::core {
 
-    class Extension {
+    class WoTStream {
     public:
-        Extension();
-        ~Extension();
+        WoTStream();
+        ~WoTStream();
 
         void Initialize();
+
+        void UpdateScreenSize(int width, int height);
         void UpdateStreamToken(const std::string &token);
 
-        void StartStream();
-        void StopStream();
+        bool StartStream();
+        bool StopStream();
 
-        void UpdateScreen(int width, int height, int fps);
-
-        bool GetStreamStarted();
+        obs_management::outputs::OutputState GetStreamState();
 
     private:
-        void ResetVideo(int width = 1920, int height = 1080, int fps = 60);
-        void ResetAudio(speaker_layout layout = SPEAKERS_STEREO, int sps = 44100);
-
-        void ClearAll();
-
-        std::unique_ptr<obs_management::ModulesLoader> modules_loader;
 
         std::unique_ptr<obs_management::sources::WoTScene> scene;
         std::unique_ptr<obs_management::encoders::Encoder> video_encoder;
