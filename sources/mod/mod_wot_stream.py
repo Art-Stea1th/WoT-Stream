@@ -42,7 +42,7 @@ class Protocol(object): # I Want Enums
 
     @property
     def badOperation(self):
-        return self.__rd
+        return self.__bp
 
     @property
     def error(self):
@@ -77,7 +77,7 @@ class WoTStreamRemote(object):
         self.__proto = Protocol()
         self.__address = address
         self.__port = port
-        self.__sc = socket()
+        self.__sc = None
 
     @property
     def proto(self):
@@ -85,9 +85,10 @@ class WoTStreamRemote(object):
 
     def connect(self):
         try:
+            self.__sc = socket()
             self.__sc.connect((self.__address, self.__port))
             return self.__proto.ok
-        except :
+        except:
             return self.__proto.unawailable
 
     def getState(self):
@@ -105,20 +106,20 @@ class WoTStreamRemote(object):
     def stopStream(self):
         return self.__safeRemoteExec('stps')    
 
-    def __safeRemoteExec(self, command, ch_count=2):
+    def __safeRemoteExec(self, command, response_length=2):
         try:
-            return self.__send(command, ch_count)
+            return self.__send(command, response_length)
         except:
             return self.__proto.unawailable
 
-    def __send(self, command, ch_count):
+    def __send(self, command, response_length):
         self.__sc.send(command)
-        return self.__sc.recv(ch_count)
+        return self.__sc.recv(response_length)
         
-    # UNUSED: it works, but lock main process
+    # UNUSED: it works, but wot_stream.exe crash
     def __startWoTStream(self):
         full_name = self.__get_reg_value(r'Software\WoT Stream', 'InstallPath') + r'\wot_stream.exe'
-        subprocess.call(full_name) # <- lock
+        subprocess.Popen(full_name)
 
     # UNUSED: it works
     def __getRegValue(self, path, name):
@@ -184,53 +185,53 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
         input_valid = False
 
         if input and len(input) == 19:
-            match = self.__state.Pattern.match(input)
+            match = self.__state.pattern.match(input)
             if match:
-                self.__state.Token = match.group(0)
+                self.__state.token = match.group(0)
                 input_valid = True
 
         self.__onInputValidate(input_valid)
 
     # -- from view
-    def startStopStream(self, token):
+    def startStopStream(self, token):        
 
         state = self.WSR.getState()
 
-        print state
+        if state == self.proto.unawailable:
+            self.__onConnect(self.WSR.connect())            
 
-        if state == self.proto.unawailable or state == self.proto.notInitialized:
-            self.__connect()
+        elif state == self.proto.notInitialized:
+            self.__onInitialize(self.WSR.initialize())            
 
         elif state == self.proto.stopped:
-            valid_input = self.checkInput(self.__state.token)
-            if not valid_input:
-                return
-            self.__startStream(self.__state.token)
+            self.WSR.updateToken(self.__state.token)
+            self.__onStreamStart(self.WSR.startStream())            
 
-        #elif state == self.proto.busy:
-        #    self.__onBusy()
+        elif state == self.proto.busy:
+            self.__onBusy()
 
         elif state == self.proto.started:
-            self.__onStreamStop(self.WSR.stopStream())
+            self.__onStreamStop(self.WSR.stopStream())            
         else:
-            return
-
-
-
-    def __connect(self):
-        self.WSR.connect()
-        self.__onConnect(self.WSR.initialize())
-
-    def __startStream(self, token):
-        self.WSR.updateToken(token)
-        self.__onStreamStart(self.WSR.startStream())
-
-    def __stopStream(self):
-        self.__onStreamStop(self.WSR.stopStream())
-
-
+            pass
 
     def __onConnect(self, result):
+        if result == self.proto.ok:
+            self.__setHelpText("Connected, click 'Initialize'")
+            self.__setInputEnabled(False)
+            self.__setBtnEnabled(True)
+            self.__setBtnLabel('Initialize')
+            self.__setStatusText('connection successfully')
+            print 'WSR: connection successfully'
+        else:
+            self.__setHelpText("Run the companion app and click 'Connect'")
+            self.__setInputEnabled(False)
+            self.__setBtnEnabled(True)
+            self.__setBtnLabel('Try Again')
+            self.__setStatusText("connection failed, wot_stream.exe isn't available")
+            print "WSR: connection failed, wot_stream.exe isn't available"
+
+    def __onInitialize(self, result):
         if result == self.proto.ok:
             self.__setHelpText("Enter your token below and click 'Start Stream'!")
             self.__setInputEnabled(True)
@@ -259,7 +260,7 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
             self.__setInputEnabled(True)
             self.__setBtnEnabled(True)
             self.__setBtnLabel('Try Again')
-            self.__setStatusText('Invalid stream token or rtmp-server is not available')
+            self.__setStatusText("Invalid stream token or rtmp-server isn't available")
             print 'WSR: start stream fail, bad token'
         else:
             self.__setHelpText("Could not start the stream")
@@ -305,32 +306,32 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
 
     # -- to view
     def __setHelpText(self, text):
-        self.__state.Help = text
+        self.__state.help = text
         self.flashObject.SetHelpTextFieldText(text)
 
     # -- to view
     def __setInputEnabled(self, enabled):
-        self.__state.InputEnabled = enabled
+        self.__state.inputEnabled = enabled
         self.flashObject.SetTokenInputEnabled(enabled)
 
     # -- to view
     def __setInputText(self, text):
-        self.__state.Token = text
+        self.__state.token = text
         self.flashObject.SetTokenInputText(text)
 
     # -- to view
     def __setBtnEnabled(self, enabled):
-        self.__state.BtnEnabled = enabled
+        self.__state.btnEnabled = enabled
         self.flashObject.SetStartStopButtonEnabled(enabled)
 
     # -- to view
     def __setBtnLabel(self, label):
-        self.__state.BtnLabel = label
+        self.__state.btnLabel = label
         self.flashObject.SetStartStopButtonLabel(label)
 
     # -- to view
     def __setStatusText(self, text):
-        self.__state.StatusText = text
+        self.__state.statusText = text
         self.flashObject.SetStatusTextFieldText(text)
 
 
