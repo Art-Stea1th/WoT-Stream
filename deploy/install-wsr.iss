@@ -1,7 +1,7 @@
 #define AppName "WoT Stream: Remote"
 #define AppVersion "0.0.1"
 #define AppPublisher "Stanislav Kuzmich"
-#define AppURL "https://github.com/Art-Stea1th/wot-stream"
+#define AppURL "https://github.com/Art-Stea1th/wot-stream/releases/latest"
 #define AppExeName "wot_stream.exe"
 #define AppCompatibleName "WoT Stream"
 
