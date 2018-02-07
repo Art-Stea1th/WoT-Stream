@@ -1,7 +1,7 @@
 import re
 import atexit
 import subprocess
-import _winreg as winreg
+from os import path
 from warnings import warn
 from socket import socket
 
@@ -121,7 +121,7 @@ class WoTStreamRemote(object):
         return self.__sc.recv(response_length)
     
     def __startWoTStream(self):
-        wsr_path = self.__getRegValue(r'Software\WoT Stream', 'InstallPath')
+        wsr_path = path.abspath(path.join(__file__,  r'..\..\..\..\..\\res_mods\0.9.22.0\wot_stream\\'))
         full_name = wsr_path + r'\wot_stream.exe'
         sinfo = subprocess.STARTUPINFO()
         sinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -131,15 +131,6 @@ class WoTStreamRemote(object):
     def __initializeWotStream(self):
         self.connect()
         self.initialize()
-
-    def __getRegValue(self, path, name):
-        try:
-            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, path, 0, winreg.KEY_READ)
-            value, regtype = winreg.QueryValueEx(registry_key, name)
-            winreg.CloseKey(registry_key)
-            return value
-        except WindowsError:
-            return None
 
 
 class WotStreamViewState(object):
