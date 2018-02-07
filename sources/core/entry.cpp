@@ -16,7 +16,7 @@ int main() {
 }
 
 void ConfigureView() {
-    SetConsoleTitle("WoT Stream: Remote v0.0.2 RC");
+    SetConsoleTitle("WoT Stream: Remote v0.0.1 RC");
     SetConsoleColors(BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE);
 }
 

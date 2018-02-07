@@ -68,10 +68,13 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#AppCompatibleNam
 
 [Registry]
 Root: "HKCU"; Subkey: "Software\WoT Stream"; ValueType: string; ValueName: "InstallPath"; ValueData: "{#c_dir}"
+Root: "HKCU"; Subkey: "Software\WoT Stream"; ValueType: string; ValueName: "GamePath";    ValueData: "{#m_dir}"
 
 [Code]
+
 var
   DirPage: TInputDirWizardPage;
+  DirPageID: Integer;
 
 function GetDir(Param: String): String;
 begin
@@ -94,6 +97,7 @@ begin
   DirPage.Add('Setup will install "mod" into the following "World of Tanks" folder:');
   DirPage.Values[0] := GetPreviousData('wot_stream', ExpandConstant('{pf}') + '\{#AppCompatibleName}');
   DirPage.Values[1] := GetPreviousData('res_mods', GetWoTPath());
+  DirPageID := DirPage.ID;
 end;
 
 procedure RegisterPreviousData(PreviousDataKey: Integer);
@@ -106,7 +110,7 @@ function NextButtonClick(CurPageID: Integer): Boolean;
 begin
   Result := True;
 case CurPageID of
-  wpSelectDir:
+  DirPageID:
     if not FileExists(ExpandConstant('{#m_dir}\WorldOfTanks.exe')) then
     begin
       MsgBox('Invalid path to the World of Tanks folder', mbError, MB_OK);

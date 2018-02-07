@@ -1,14 +1,9 @@
 .vs/
 
-build/Debug/
-build/Release/
+*/Debug/
+*/Release/
 
 deploy/core/*
 deploy/mod/*
 deploy/*.exe
 deploy/*.dll
-
-deps/mod/includes_py/client/*
-deps/mod/includes_py/common/*
-
-projects/
