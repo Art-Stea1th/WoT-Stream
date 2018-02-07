@@ -5,15 +5,15 @@
 #define AppExeName "wot_stream.exe"
 #define AppCompatibleName "WoT Stream"
 
+#define WoTRegistry "Software\Microsoft\Windows\CurrentVersion\Uninstall\{1EAC1D02-C6AC-4FA6-9A44-96258C37C812ru}_is1"
+
+#define Destination "{code:GetWoTPath|'C:\Games\World_of_Tanks\'}\res_mods\0.9.22.0"
+
+#define CorePath "wot_stream"
 #define CoreFiltersPath "data\libobs"
+
 #define ModUIFilesPath "gui\flash"
 #define ModScriptsPath "scripts\client\gui\mods"
-
-#define WoTRegistry "Software\Microsoft\Windows\CurrentVersion\Uninstall\{1EAC1D02-C6AC-4FA6-9A44-96258C37C812ru}_is1"
-#define WoTVersion "0.9.22.0"
-
-#define c_dir "{code:GetDir|0}"
-#define m_dir "{code:GetDir|1}"
 
 [Setup]
 AppId={{4BECE10F-1F54-4846-8FF5-1E4B7952F6FE}
@@ -37,81 +37,46 @@ RestartIfNeededByRun=False
 SetupIconFile=resources\wot_icon.ico
 UninstallDisplayIcon={uninstallexe}
 
-DefaultDirName={pf}\{#AppCompatibleName}\
-CreateAppDir=True
-DisableDirPage=True
+DefaultDirName=C:\Games\World_of_Tanks\
+AppendDefaultDirName=False
+DirExistsWarning=False
+DisableDirPage=False
 
 DisableReadyPage=True
 DisableReadyMemo=True
 
-UninstallFilesDir={#c_dir}
-
-[Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}";
-Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
+UninstallFilesDir="{#Destination}\{#CorePath}\"
 
 [Files]
 ; Core files
-Source: "core\*" ; DestDir: "{#c_dir}";
-Source: "resources\wot_icon.ico" ; DestDir: "{#c_dir}";
-Source: "core\{#CoreFiltersPath}\*" ; DestDir: "{#c_dir}\{#CoreFiltersPath}\";
+Source: "core\*" ; DestDir: "{#Destination}\{#CorePath}\";
+Source: "resources\wot_icon.ico" ; DestDir: "{#Destination}\{#CorePath}\";
+Source: "core\{#CoreFiltersPath}\*" ; DestDir: "{#Destination}\{#CorePath}\{#CoreFiltersPath}\";
 ; Mod files
-Source: "mod\{#ModUIFilesPath}\*"; DestDir: "{#m_dir}\res_mods\{#WoTVersion}\{#ModUIFilesPath}\";
-Source: "mod\{#ModScriptsPath}\*"; DestDir: "{#m_dir}\res_mods\{#WoTVersion}\{#ModScriptsPath}\";
+Source: "mod\{#ModUIFilesPath}\*"; DestDir: "{#Destination}\{#ModUIFilesPath}\";
+Source: "mod\{#ModScriptsPath}\*"; DestDir: "{#Destination}\{#ModScriptsPath}\";
 
 [Icons]
-Name: "{group}\Start {#AppCompatibleName}"; Filename: "{#c_dir}\{#AppExeName}"; IconFilename: "{#c_dir}\wot_icon.ico";
 Name: "{group}\{cm:ProgramOnTheWeb,{#AppCompatibleName}}"; Filename: "{#AppURL}";
 Name: "{group}\{cm:UninstallProgram,{#AppCompatibleName}}"; Filename: "{uninstallexe}";
-Name: "{commondesktop}\{#AppCompatibleName}"; Filename: "{#c_dir}\{#AppExeName}"; IconFilename: "{#c_dir}\wot_icon.ico"; Tasks: desktopicon;
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#AppCompatibleName}"; Filename: "{#c_dir}\{#AppExeName}"; Tasks: quicklaunchicon;
-
-[Registry]
-Root: "HKCU"; Subkey: "Software\WoT Stream"; ValueType: string; ValueName: "InstallPath"; ValueData: "{#c_dir}"
-Root: "HKCU"; Subkey: "Software\WoT Stream"; ValueType: string; ValueName: "GamePath";    ValueData: "{#m_dir}"
 
 [Code]
 
-var
-  DirPage: TInputDirWizardPage;
-  DirPageID: Integer;
-
-function GetDir(Param: String): String;
-begin
-  Result := DirPage.Values[StrToInt(Param)];
-end;
-
-function GetWoTPath(): string;
+function GetWoTPath(default: String): string;
 var          
   WoTPath: string;
 begin
-  Result := 'C:\Games\World_of_Tanks\';
+  Result := default;
   if RegQueryStringValue(HKCU, '{#WoTRegistry}', 'InstallLocation', WoTPath) then
     Result := WoTPath
-end;
-
-procedure InitializeWizard;
-begin
-  DirPage := CreateInputDirPage(wpSelectDir, 'Select Destination Location', 'Where should "{#AppName}" be installed?', '', False, '');
-  DirPage.Add('Setup will install "{#AppName}" into the following folder:');
-  DirPage.Add('Setup will install "mod" into the following "World of Tanks" folder:');
-  DirPage.Values[0] := GetPreviousData('wot_stream', ExpandConstant('{pf}') + '\{#AppCompatibleName}');
-  DirPage.Values[1] := GetPreviousData('res_mods', GetWoTPath());
-  DirPageID := DirPage.ID;
-end;
-
-procedure RegisterPreviousData(PreviousDataKey: Integer);
-begin
-  SetPreviousData(PreviousDataKey, 'wot_stream', DirPage.Values[0]);
-  SetPreviousData(PreviousDataKey, 'res_mods', DirPage.Values[1]);
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
   Result := True;
 case CurPageID of
-  DirPageID:
-    if not FileExists(ExpandConstant('{#m_dir}\WorldOfTanks.exe')) then
+  wpSelectDir:
+    if not FileExists(ExpandConstant('{app}\WorldOfTanks.exe')) then
     begin
       MsgBox('Invalid path to the World of Tanks folder', mbError, MB_OK);
       Result := False;
