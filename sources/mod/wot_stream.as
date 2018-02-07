@@ -14,8 +14,8 @@ package
 		private var startStopButton    : SoundButton;
 		private var statusTextField    : TextField;
 		
-		public var CheckInput          : Function = null;
-		public var StartStopStream     : Function = null;		
+		public var checkInput          : Function = null;
+		public var startStopStream     : Function = null;		
 		
 		public function WoTStreamView() 
 		{
@@ -76,11 +76,11 @@ package
 		
 		
 		private function onTokenChanged(param: Event) : void {
-			this.CheckInput(this.tokenInput.text);
+			this.checkInput(this.tokenInput.text);
 		}
 		
 		private function onStartStreamClicked(param: ButtonEvent) : void {
-			this.StartStopStream(this.tokenInput.text);
+			this.startStopStream(this.tokenInput.text);
 		}	
 		
 		
