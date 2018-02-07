@@ -1,4 +1,5 @@
 import re
+import atexit
 import subprocess
 import _winreg as winreg
 from warnings import warn
@@ -78,13 +79,16 @@ class WoTStreamRemote(object):
         self.__address = address
         self.__port = port
         self.__sc = None
+        self.__wsr = None
+        self.__startWoTStream()
+        self.__initializeWotStream()
 
     @property
     def proto(self):
         return self.__proto
 
     def connect(self):
-        try:
+        try:            
             self.__sc = socket()
             self.__sc.connect((self.__address, self.__port))
             return self.__proto.ok
@@ -115,16 +119,22 @@ class WoTStreamRemote(object):
     def __send(self, command, response_length):
         self.__sc.send(command)
         return self.__sc.recv(response_length)
-        
-    # UNUSED: it works, but wot_stream.exe crash
+    
     def __startWoTStream(self):
-        full_name = self.__get_reg_value(r'Software\WoT Stream', 'InstallPath') + r'\wot_stream.exe'
-        subprocess.Popen(full_name)
+        wsr_path = self.__getRegValue(r'Software\WoT Stream', 'InstallPath')
+        full_name = wsr_path + r'\wot_stream.exe'
+        sinfo = subprocess.STARTUPINFO()
+        sinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        wsr = subprocess.Popen(full_name, cwd=wsr_path, startupinfo=sinfo)
+        atexit.register(wsr.kill)
 
-    # UNUSED: it works
+    def __initializeWotStream(self):
+        self.connect()
+        self.initialize()
+
     def __getRegValue(self, path, name):
         try:
-            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, path, 0, _winreg.KEY_READ)
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, path, 0, winreg.KEY_READ)
             value, regtype = winreg.QueryValueEx(registry_key, name)
             winreg.CloseKey(registry_key)
             return value
@@ -138,11 +148,11 @@ class WotStreamViewState(object):
         self.WSR = WoTStreamRemote('127.0.0.1', 48684)
         self.pattern = re.compile(r'^[a-z0-9]{4,4}-[a-z0-9]{4,4}-[a-z0-9]{4,4}-[a-z0-9]{4,4}', re.IGNORECASE)
 
-        self.help = "Run the companion app and click 'Connect'"
-        self.inputEnabled = False
+        self.help = "Enter your token below and click 'Start Stream'!"
+        self.inputEnabled = True
         self.token = ''
-        self.btnEnabled = True
-        self.btnLabel = 'Connect'
+        self.btnEnabled = False
+        self.btnLabel = 'Start Stream'
         self.statusText = 'unknown'
 
 
