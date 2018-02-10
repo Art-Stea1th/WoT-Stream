@@ -2,22 +2,35 @@ import re
 import atexit
 import subprocess
 from os import path
-from warnings import warn
 from socket import socket
 
 from gui import InputHandler
-from gui.Scaleform import SCALEFORM_SWF_PATH
-from gui.Scaleform.Flash import Flash
-from gui.Scaleform.daapi import LobbySubView
-from gui.Scaleform.daapi.view.meta.WindowViewMeta import WindowViewMeta
 from gui.Scaleform.framework import g_entitiesFactories, ViewSettings, ViewTypes, ScopeTemplates
 from gui.Scaleform.framework.entities.View import View
 from gui.Scaleform.framework.managers.loaders import ViewLoadParams
 from gui.app_loader.loader import g_appLoader
-from gui.shared import events
 from gui.shared.utils.key_mapping import getBigworldNameFromKey
 
-LobbySubView.__background_alpha__ = 0
+
+def wsrLogInfo(message):
+    wsrLog('INFO', message)
+
+def wsfLogWarning(message):
+    wsrLog('WARNING', message)
+
+def wsrLogError(message):
+    wsrLog('ERROR', message)
+
+def wsrLogUnexpected(message):
+    wsrLog('UNEXPECTED', message)
+
+def wsrLog(level, message):
+    if level and message:
+        print getWSRLogSuffix() + level + ': ' + str(message)
+
+def getWSRLogSuffix():
+    return 'WSR-'
+
 
 class Protocol(object): # I Want Enums
 
@@ -80,21 +93,20 @@ class WoTStreamRemote(object):
         self.__port = port
         self.__sc = None
         self.__wsr = None
-        self.__startWoTStream()
-        self.__initializeWotStream()
+        self.connect()
+        self.initialize()
 
     @property
     def proto(self):
         return self.__proto
 
     def connect(self):
-        try:            
-            self.__sc = socket()
-            self.__sc.connect((self.__address, self.__port))
-            return self.__proto.ok
-        except:
-            return self.__proto.unawailable
-
+        if self.__connect() == self.proto.unawailable:
+            if self.__startWoTStream() == self.proto.unawailable:
+                return self.proto.unawailable
+            return self.__connect()
+        return self.proto.ok
+    
     def getState(self):
         return self.__safeRemoteExec('stat', 4)
 
@@ -119,18 +131,35 @@ class WoTStreamRemote(object):
     def __send(self, command, response_length):
         self.__sc.send(command)
         return self.__sc.recv(response_length)
-    
-    def __startWoTStream(self):
-        wsr_path = path.abspath(path.join(__file__,  r'..\..\..\..\..\\res_mods\0.9.22.0\wot_stream\\'))
-        full_name = wsr_path + r'\wot_stream.exe'
-        sinfo = subprocess.STARTUPINFO()
-        sinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        wsr = subprocess.Popen(full_name, cwd=wsr_path, startupinfo=sinfo)
-        atexit.register(wsr.kill)
 
-    def __initializeWotStream(self):
-        self.connect()
-        self.initialize()
+    def __connect(self):
+        wsrLogInfo('try connect to wot_stream')
+        try:
+            self.__sc = socket()
+            self.__sc.connect((self.__address, self.__port))
+            wsrLogInfo('connection successful')
+            return self.proto.ok
+        except:
+            wsrLogError("can't connect to wot_stream")
+        return self.proto.unawailable
+
+    def __startWoTStream(self):
+        wsrLogInfo('try start wot_stream')
+        if self.getState() == self.proto.unawailable:
+            wsr_path = path.abspath(path.join(__file__,  r'../../../../../wot_stream/'))
+            full_name = wsr_path + r'\wot_stream.exe'
+            sinfo = subprocess.STARTUPINFO()
+            sinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            try:
+                wsr = subprocess.Popen(full_name, cwd=wsr_path, startupinfo=sinfo)
+                atexit.register(wsr.kill)
+                wsrLogInfo('wot_stream started')
+            except:
+                wsrLogError("can't start wot_stream")
+                return self.proto.unawailable
+        else:
+            wsrLogInfo('wot_stream already started')
+        return self.proto.ok
 
 
 class WotStreamViewState(object):
@@ -139,9 +168,9 @@ class WotStreamViewState(object):
         self.WSR = WoTStreamRemote('127.0.0.1', 48684)
         self.pattern = re.compile(r'^[a-z0-9]{4,4}-[a-z0-9]{4,4}-[a-z0-9]{4,4}-[a-z0-9]{4,4}', re.IGNORECASE)
 
-        self.help = "Enter your token below and click 'Start Stream'!"
+        self.helpText = "Enter your token below and click 'Start Stream'!"
         self.inputEnabled = True
-        self.token = ''
+        self.inputText = ''
         self.btnEnabled = False
         self.btnLabel = 'Start Stream'
         self.statusText = 'unknown'
@@ -149,17 +178,25 @@ class WotStreamViewState(object):
 
 g_ws_ViewState = WotStreamViewState()
 
-class WoTStreamView(LobbySubView, WindowViewMeta):
+def getViewState():
+    global g_ws_ViewState
+    return g_ws_ViewState
+
+
+class WoTStreamView(View):
 
     def __init__(self):
-        View.__init__(self)
-        global g_ws_ViewState
-        self.__state = g_ws_ViewState
+        super(WoTStreamView, self).__init__()
+        self.__state = getViewState()
         self.WSR = self.__state.WSR
         self.proto = self.WSR.proto
-        print 'WSR: View --- init ok'
+        wsrLogInfo('init ok')
+
+    def _populate(self):
+        super(WoTStreamView, self)._populate()
 
     def onFocusIn(self, alias):
+        super(WoTStreamView, self).onFocusIn(alias)
         self.__loadState()
 
     def onTryClosing(self):
@@ -169,16 +206,19 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
         self.destroy()
 
     def _dispose(self):
-        View._dispose(self)
+        super(WoTStreamView, self)._dispose()
+
+    def __del__(self):
+        super(WoTStreamView, self).__del__()
 
     def __loadState(self):
-        self.__setHelpText(self.__state.help)
-        self.__setInputEnabled(self.__state.inputEnabled)
-        self.__setInputText(self.__state.token)
-        self.__setBtnEnabled(self.__state.btnEnabled)
-        self.__setBtnLabel(self.__state.btnLabel)
-        self.__setStatusText(self.__state.statusText)
-        print 'WSR: View --- state loaded'
+        self.__changeViewData(
+            help_text     = self.__state.helpText,
+            input_enabled = self.__state.inputEnabled,
+            input_text    = self.__state.inputText,
+            btn_enabled   = self.__state.btnEnabled,
+            btn_label     = self.__state.btnLabel,
+            status_text   = self.__state.statusText)
 
     # -- from view
     def checkInput(self, input):
@@ -188,14 +228,14 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
         if input and len(input) == 19:
             match = self.__state.pattern.match(input)
             if match:
-                self.__state.token = match.group(0)
+                self.__state.inputText = match.group(0)
                 input_valid = True
 
         self.__onInputValidate(input_valid)
 
     # -- from view
-    def startStopStream(self, token):        
-
+    def startStopStream(self, token):
+        
         state = self.WSR.getState()
 
         if state == self.proto.unawailable:
@@ -205,7 +245,7 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
             self.__onInitialize(self.WSR.initialize())            
 
         elif state == self.proto.stopped:
-            self.WSR.updateToken(self.__state.token)
+            self.WSR.updateToken(self.__state.inputText)
             self.__onStreamStart(self.WSR.startStream())            
 
         elif state == self.proto.busy:
@@ -214,126 +254,143 @@ class WoTStreamView(LobbySubView, WindowViewMeta):
         elif state == self.proto.started:
             self.__onStreamStop(self.WSR.stopStream())            
         else:
-            pass
+            wsrLogUnexpected('unexpected "wot_stream.getState" response')
 
     def __onConnect(self, result):
+        self.__changeViewData(input_enabled=False, btn_enabled=True)
         if result == self.proto.ok:
-            self.__setHelpText("Connected, click 'Initialize'")
-            self.__setInputEnabled(False)
-            self.__setBtnEnabled(True)
-            self.__setBtnLabel('Initialize')
-            self.__setStatusText('connection successfully')
-            print 'WSR: connection successfully'
+            self.__changeViewData(
+                help_text     = "Connected, click 'Initialize'",
+                btn_label     = 'Initialize',
+                status_text   = 'connection successfully')
         else:
-            self.__setHelpText("Run the companion app and click 'Connect'")
-            self.__setInputEnabled(False)
-            self.__setBtnEnabled(True)
-            self.__setBtnLabel('Try Again')
-            self.__setStatusText("connection failed, wot_stream.exe isn't available")
-            print "WSR: connection failed, wot_stream.exe isn't available"
+            self.__changeViewData(
+                help_text     = "Run the companion app and click 'Connect'",
+                btn_label     = 'Try Again',
+                status_text   = "connection failed, wot_stream.exe isn't available")
+
 
     def __onInitialize(self, result):
         if result == self.proto.ok:
-            self.__setHelpText("Enter your token below and click 'Start Stream'!")
-            self.__setInputEnabled(True)
-            self.__setBtnEnabled(False)
-            self.__setBtnLabel('Start Stream')
-            self.__setStatusText('initialization completed successfully')
-            print 'WSR: initialization completed successfully'
+            self.__changeViewData(
+                help_text     = "Enter your token below and click 'Start Stream'!",
+                input_enabled = True,
+                btn_enabled   = False,
+                btn_label     = 'Start Stream',
+                status_text   = 'initialization completed successfully')
         else:
-            self.__setHelpText("Run the companion app and click 'Connect'")
-            self.__setInputEnabled(False)
-            self.__setBtnEnabled(True)
-            self.__setBtnLabel('Try Again')
-            self.__setStatusText('initialization failed, something went wrong')
-            print 'WSR: initialization failed, something went wrong'
+            self.__changeViewData(
+                help_text     = "Run the companion app and click 'Connect'",
+                input_enabled = False,
+                btn_enabled   = True,
+                btn_label     = 'Try Again',
+                status_text   = 'initialization failed, something went wrong')
+
 
     def __onStreamStart(self, result):
+        self.__changeViewData(input_enabled=True, btn_enabled=True)
         if result == self.proto.ok:
-            self.__setHelpText("Stream started! You can close this window")
-            self.__setInputEnabled(False)
-            self.__setBtnEnabled(True)
-            self.__setBtnLabel('Stop Stream')
-            self.__setStatusText('stream started')
-            print 'WSR: stream started'
+            self.__changeViewData(
+                help_text     = "Stream started! You can close this window",
+                input_enabled = False,
+                btn_label     = 'Stop Stream',
+                status_text   = 'stream started',
+                log_msg       = 'stream started')
         elif result == self.proto.error: #invalid token
-            self.__setHelpText("Could not start the stream")
-            self.__setInputEnabled(True)
-            self.__setBtnEnabled(True)
-            self.__setBtnLabel('Try Again')
-            self.__setStatusText("Invalid stream token or rtmp-server isn't available")
-            print 'WSR: start stream fail, bad token'
+            self.__changeViewData(
+                help_text     = "Couldn't start the stream",
+                btn_label     = 'Try Again',
+                status_text   = "Invalid stream token or rtmp-server isn't available",
+                log_msg       = "start stream fail, bad token or rtmp-server isn't available")
         else:
-            self.__setHelpText("Could not start the stream")
-            self.__setInputEnabled(True)
-            self.__setBtnEnabled(True)
-            self.__setBtnLabel('Try Again')
-            self.__setStatusText('wot stream not ready')
-            print 'WSR: start stream fail, wot stream not ready'
+            self.__changeViewData(
+                help_text     = "Couldn't start the stream",
+                btn_label     = 'Try Again',
+                status_text   = 'wot stream not ready',
+                log_msg       = 'start stream fail, wot stream not ready')
+
 
     def __onBusy(self):
-        self.__setHelpText("Operation failed")
-        self.__setInputEnabled(True)
-        self.__setBtnEnabled(True)
-        self.__setBtnLabel('Try Again')
-        self.__setStatusText('wot stream not ready')
-        print 'WSR: busy, operation failed, wot stream not ready'
+        self.__changeViewData(
+                help_text     = "Operation failed",
+                input_enabled = True,
+                btn_enabled   = True,
+                btn_label     = 'Try Again',
+                status_text   = 'wot stream not ready',
+                log_msg       = 'busy, operation failed, wot stream not ready')
+
 
     def __onStreamStop(self, result):
+        self.__changeViewData(input_enabled=True, btn_enabled=True)
         if result == self.proto.ok:
-            self.__setHelpText("Stream stopped!")
-            self.__setInputEnabled(True)
-            self.__setBtnEnabled(True)
-            self.__setBtnLabel('Start Stream')
-            self.__setStatusText('stream stopped')
-            print 'WSR: stream started'
+            self.__changeViewData(
+                help_text     = "Stream stopped!",
+                btn_label     = 'Start Stream',
+                status_text   = 'stream stopped',
+                log_msg       = 'WSR: stream stopped')
         else:
-            self.__setHelpText("Could not stop the stream")
-            self.__setInputEnabled(True)
-            self.__setBtnEnabled(True)
-            self.__setBtnLabel('Try Again')
-            self.__setStatusText('wot stream not ready')
-            print 'WSR: stop stream fail, wot stream not ready'
+            self.__changeViewData(
+                help_text     = "Could not stop the stream",
+                btn_label     = 'Try Again',
+                status_text   = 'wot stream not ready',
+                log_msg       = 'stop stream fail, wot stream not ready')
 
 
-    def __onInputValidate(self, valid):
-        if valid:
+    def __onInputValidate(self, input_valid):
+        if input_valid:
             self.__setStatusText('token valid')
             self.__setBtnLabel('Start Stream')
         else:
             self.__setStatusText('invalid token')
-        self.__setBtnEnabled(valid)
+        self.__setBtnEnabled(input_valid)
+
     
+    def __changeViewData(self, help_text=None,
+                         input_enabled=None, input_text=None,
+                         btn_enabled=None, btn_label=None,
+                         status_text=None, log_msg=None):
+        if help_text is not None:
+            self.__setHelpText(help_text)
+        if input_enabled is not None:
+            self.__setInputEnabled(input_enabled)
+        if btn_enabled is not None:
+            self.__setBtnEnabled(btn_enabled)
+        if btn_label is not None:
+            self.__setBtnLabel(btn_label)
+        if status_text is not None:
+            self.__setStatusText(status_text)
+        if log_msg is not None:
+            wsrLogInfo(log_msg)
 
     # -- to view
-    def __setHelpText(self, text):
-        self.__state.help = text
-        self.flashObject.SetHelpTextFieldText(text)
+    def __setHelpText(self, help_text):
+        self.__state.helpText = help_text
+        self.flashObject.SetHelpTextFieldText(help_text)
 
     # -- to view
-    def __setInputEnabled(self, enabled):
-        self.__state.inputEnabled = enabled
-        self.flashObject.SetTokenInputEnabled(enabled)
+    def __setInputEnabled(self, input_enabled):
+        self.__state.inputEnabled = input_enabled
+        self.flashObject.SetTokenInputEnabled(input_enabled)
 
     # -- to view
-    def __setInputText(self, text):
-        self.__state.token = text
-        self.flashObject.SetTokenInputText(text)
+    def __setInputText(self, input_text):
+        self.__state.inputText = input_text
+        self.flashObject.SetTokenInputText(input_text)
 
     # -- to view
-    def __setBtnEnabled(self, enabled):
-        self.__state.btnEnabled = enabled
-        self.flashObject.SetStartStopButtonEnabled(enabled)
+    def __setBtnEnabled(self, btn_enabled):
+        self.__state.btnEnabled = btn_enabled
+        self.flashObject.SetStartStopButtonEnabled(btn_enabled)
 
     # -- to view
-    def __setBtnLabel(self, label):
-        self.__state.btnLabel = label
-        self.flashObject.SetStartStopButtonLabel(label)
+    def __setBtnLabel(self, btn_label):
+        self.__state.btnLabel = btn_label
+        self.flashObject.SetStartStopButtonLabel(btn_label)
 
     # -- to view
-    def __setStatusText(self, text):
-        self.__state.statusText = text
-        self.flashObject.SetStatusTextFieldText(text)
+    def __setStatusText(self, status_text):
+        self.__state.statusText = status_text
+        self.flashObject.SetStatusTextFieldText(status_text)
 
 
 _window_alias = 'WotStreamView'
@@ -345,23 +402,15 @@ _scope = ScopeTemplates.GLOBAL_SCOPE
 _settings = ViewSettings(_window_alias, WoTStreamView, _url, _type, _event, _scope)
 g_entitiesFactories.addSettings(_settings)
 
-old_init = Flash.__init__
+
+def init():
+    InputHandler.g_instance.onKeyDown += on_key_event
+
+def fini():
+    InputHandler.g_instance.onKeyDown -= on_key_event
 
 
 def on_key_event(event):
     key = getBigworldNameFromKey(event.key)
     if key == 'KEY_F10':
-        g_appLoader.getApp().loadView(ViewLoadParams(_window_alias, _window_alias))
-
-
-def new_init(self, swf, className='Flash', args=None, path=SCALEFORM_SWF_PATH):
-    old_init(self, swf, className, args, path)
-    if swf == 'lobby.swf':
-        self.addListener(events.AppLifeCycleEvent.INITIALIZED, lambda e: subscribe(self, e))
-
-
-def subscribe(self, event):
-    InputHandler.g_instance.onKeyDown += on_key_event
-
-
-Flash.__init__ = new_init
+        app = g_appLoader.getApp().loadView(ViewLoadParams(_window_alias, _window_alias))

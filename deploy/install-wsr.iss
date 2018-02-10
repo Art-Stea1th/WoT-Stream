@@ -5,9 +5,8 @@
 #define AppExeName "wot_stream.exe"
 #define AppCompatibleName "WoT Stream"
 
-#define WoTRegistry "Software\Microsoft\Windows\CurrentVersion\Uninstall\{1EAC1D02-C6AC-4FA6-9A44-96258C37C812ru}_is1"
-
-#define Destination "{code:GetWoTPath|'C:\Games\World_of_Tanks\'}\res_mods\0.9.22.0"
+#define WoTRoot "{app}"
+#define ResMods "res_mods\0.9.22.0"
 
 #define CorePath "wot_stream"
 #define CoreFiltersPath "data\libobs"
@@ -45,38 +44,28 @@ DisableDirPage=False
 DisableReadyPage=True
 DisableReadyMemo=True
 
-UninstallFilesDir="{#Destination}\{#CorePath}\"
+UninstallFilesDir="{#WoTRoot}\{#CorePath}\"
 
 [Files]
 ; Core files
-Source: "core\*" ; DestDir: "{#Destination}\{#CorePath}\";
-Source: "resources\wot_icon.ico" ; DestDir: "{#Destination}\{#CorePath}\";
-Source: "core\{#CoreFiltersPath}\*" ; DestDir: "{#Destination}\{#CorePath}\{#CoreFiltersPath}\";
+Source: "core\*" ; DestDir: "{#WoTRoot}\{#CorePath}\";
+Source: "resources\wot_icon.ico" ; DestDir: "{#WoTRoot}\{#CorePath}\";
+Source: "core\{#CoreFiltersPath}\*" ; DestDir: "{#WoTRoot}\{#CorePath}\{#CoreFiltersPath}\";
 ; Mod files
-Source: "mod\{#ModUIFilesPath}\*"; DestDir: "{#Destination}\{#ModUIFilesPath}\";
-Source: "mod\{#ModScriptsPath}\*"; DestDir: "{#Destination}\{#ModScriptsPath}\";
+Source: "mod\{#ModUIFilesPath}\*"; DestDir: "{#WoTRoot}\{#ResMods}\{#ModUIFilesPath}\";
+Source: "mod\{#ModScriptsPath}\*"; DestDir: "{#WoTRoot}\{#ResMods}\{#ModScriptsPath}\";
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,{#AppCompatibleName}}"; Filename: "{#AppURL}";
 Name: "{group}\{cm:UninstallProgram,{#AppCompatibleName}}"; Filename: "{uninstallexe}";
 
 [Code]
-
-function GetWoTPath(default: String): string;
-var          
-  WoTPath: string;
-begin
-  Result := default;
-  if RegQueryStringValue(HKCU, '{#WoTRegistry}', 'InstallLocation', WoTPath) then
-    Result := WoTPath
-end;
-
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
   Result := True;
 case CurPageID of
   wpSelectDir:
-    if not FileExists(ExpandConstant('{app}\WorldOfTanks.exe')) then
+    if not FileExists(ExpandConstant('{#WoTRoot}\WorldOfTanks.exe')) then
     begin
       MsgBox('Invalid path to the World of Tanks folder', mbError, MB_OK);
       Result := False;

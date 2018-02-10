@@ -1,9 +1,14 @@
 .vs/
 
-*/Debug/
-*/Release/
+Debug/
+Release/
+build/Debug/
+build/Release/
 
 deploy/core/*
 deploy/mod/*
 deploy/*.exe
 deploy/*.dll
+
+
+sources/core/entry_test.cpp
