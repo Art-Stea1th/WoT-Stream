@@ -1,5 +1,6 @@
 # WoT Stream
-### Do you want to add a **stream** to **World of Tanks**?
+### Do you want broadcast your battle to your friends?
+### Excellent! Just add a **stream** to **World of Tanks**!
 ![actual-screenshot](https://github.com/Art-Stea1th/wot-stream/blob/master/deploy/resources/actual_screenshot.png)
 
 
